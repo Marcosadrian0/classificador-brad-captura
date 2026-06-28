@@ -75,7 +75,7 @@ const SUBTIPOS = {
   ],
   // Gestor 4840
   "4840_90": [
-    { cod: 79, nome: "FINAN-CONTRATO NAO RECONHECIDO", palavras: ["empréstimo não reconhecido", "emprestimo nao reconhecido", "contrato não reconhecido", "contrato nao reconhecido", "ccb", "cédula de crédito", "cedula de credito", "empréstimo fraudulento", "emprestimo fraudulento"] },
+    { cod: 79, nome: "FINAN-CONTRATO NAO RECONHECIDO", palavras: ["empréstimo não reconhecido", "emprestimo nao reconhecido", "contrato não reconhecido", "contrato nao reconhecido", "ccb", "cédula de crédito", "cedula de credito", "empréstimo fraudulento", "emprestimo fraudulento", "bx.ant.financ", "financ/emp", "baixa antecipada de financiamento", "baixa antecipada de empréstimo", "baixa antecipada de emprestimo", "desconto não reconhecido", "desconto nao reconhecido", "desconto abusivo", "descontos não reconhecidos", "descontos nao reconhecidos", "descontos ocorridos"] },
     { cod: 159, nome: "EMP CONSIG-CONTRATO NAO RECONHECIDO", palavras: ["consignado não reconhecido", "desconto em folha não reconhecido"] },
     { cod: 192, nome: "EMP CONSIG-COMPROMETIMENTO DE RENDA", palavras: ["comprometimento de renda", "margem consignável"] },
     { cod: 241, nome: "EMPREST-NAO COMUNICACAO DA NEGATIVACAO", palavras: ["negativação sem comunicação", "negativacao sem comunicacao", "spc sem aviso", "serasa sem aviso"] },
@@ -325,7 +325,12 @@ function detectarGestor(texto) {
   if (t.includes("empréstimo") || t.includes("emprestimo") ||
       t.includes("financiamento") || t.includes("cheque especial") ||
       t.includes("ccb") || t.includes("cédula de crédito") || t.includes("cedula de credito") ||
-      t.includes("consignado")) return 4840;
+      t.includes("consignado") ||
+      t.includes("bx.ant.financ") || t.includes("financ/emp") ||
+      t.includes("baixa antecipada de financiamento") || t.includes("baixa antecipada de empréstimo") ||
+      t.includes("baixa antecipada de emprestimo") || t.includes("desconto não reconhecido") ||
+      t.includes("desconto nao reconhecido") || t.includes("desconto abusivo") ||
+      t.includes("descontos não reconhecidos") || t.includes("descontos nao reconhecidos")) return 4840;
 
   // PIX / Conta corrente
   if (t.includes("pix") || t.includes("transferência") || t.includes("transferencia") ||
@@ -440,6 +445,47 @@ function detectarData(texto) {
       }
     }
   }
+  return null;
+}
+
+function detectarData(texto) {
+  const textoLimpo = limparNumerosProcesso(limparMetadados(texto));
+  const mesRe = 'janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro';
+
+  // 1. Busca contextual próxima ao evento financeiro (mais confiável)
+  const dataContextual = detectarDataContextual(textoLimpo, [
+    'foi debitado automaticamente', 'foi debitado', 'debitado automaticamente',
+    'saque não autorizado', 'saque no valor', 'saque indevido', 'saque de r$',
+    'saques foram realizados', 'transferências foram realizadas', 'transferencias foram realizadas',
+    'transação não autorizada', 'transacao nao autorizada',
+    'valor foi subtraído', 'valor subtraído',
+    'descontos ocorridos', 'desconto não reconhecido', 'desconto abusivo',
+    'baixa antecipada', 'bx.ant.financ', 'financ/emp'
+  ]);
+  if (dataContextual) return dataContextual;
+
+  // 2. "No dia" + data textual
+  const padrao2 = new RegExp(`no\\s+dia\\s+(\\d{1,2}\\s+de\\s+(?:${mesRe})\\s+de\\s+\\d{4})`, 'gi');
+  for (const m of [...textoLimpo.matchAll(padrao2)]) return m[1].trim();
+
+  // 3. Contextual com data numérica (sem ponto para evitar falsos positivos)
+  const padrao3 = /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em|inicio em)\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/gi;
+  for (const m of [...textoLimpo.matchAll(padrao3)]) {
+    if (validarDataStr(m[1])) return m[1];
+  }
+
+  // 4. Data numérica simples (apenas / ou -, não ponto)
+  for (const m of [...textoLimpo.matchAll(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g)]) {
+    if (validarDataStr(m[1])) return m[1];
+  }
+
+  // 5. Data textual genérica
+  const padrao5 = new RegExp(`(\\d{1,2}\\s+de\\s+(?:${mesRe})\\s+de\\s+\\d{4})`, 'gi');
+  for (const m of [...textoLimpo.matchAll(padrao5)]) return m[1].trim();
+
+  // 6. Mês por extenso + /ano (ex: "agosto/2020", "janeiro/2023")
+  const padrao6 = new RegExp(`((?:${mesRe})[\/\\-]\\d{4})`, 'gi');
+  for (const m of [...textoLimpo.matchAll(padrao6)]) return m[1].trim();
 
   return null;
 }
