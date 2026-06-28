@@ -87,8 +87,18 @@ const SUBTIPOS = {
   // Gestor 8627
   "8627_90": [
     { cod: 68, nome: "CART CRED-EMISSAO NAO SOLIC PELO CLIENTE", palavras: ["cartão não solicitado", "cartao nao solicitado", "emissão não solicitada", "emissao nao solicitada"] },
+    { cod: 211, nome: "CART CRED-CONTRATO NAO RECONHECIDO", palavras: [
+      "contrato de cartão não reconhecido", "cartão não reconhecido",
+      "jamais reconheceu", "jamais reconhec", "nunca reconheceu", "nunca reconhec",
+      "não reconheceu como devidos", "nao reconheceu como devidos",
+      "gasto cartão de crédito", "gasto cartao de credito",
+      "lançamentos não reconhecidos", "lancamentos nao reconhecidos",
+      "cobranças não reconhecidas no cartão", "cobrancas nao reconhecidas no cartao",
+      "débitos não reconhecidos no cartão", "debitos nao reconhecidos no cartao",
+      "descontos não reconhecidos", "descontos nao reconhecidos",
+      "rubrica", "lançamento indevido", "lancamento indevido"
+    ] },
     { cod: 208, nome: "CART CRED-COMPRA NAO AUTORIZADA", palavras: ["compra não autorizada", "compra nao autorizada", "compra indevida", "compra não reconhecida"] },
-    { cod: 211, nome: "CART CRED-CONTRATO NAO RECONHECIDO", palavras: ["contrato de cartão não reconhecido", "cartão não reconhecido"] },
     { cod: 205, nome: "CART CRED-SAQUE NAO RECONHECIDO", palavras: ["saque no cartão não reconhecido", "saque nao reconhecido no cartao"] },
     { cod: 207, nome: "CART CRED-COBRANCA DE ANUIDADE", palavras: ["anuidade", "cobrança de anuidade"] },
     { cod: 209, nome: "CART CRED-COBRANCA PARCELA PAGA", palavras: ["parcela já paga", "parcela ja paga", "cobrança de parcela paga", "estorno não realizado", "estorno nao realizado", "operação cancelada", "operacao cancelada", "operação não concluída", "operacao nao concluida", "estorno prometido", "prometido estorno", "valor seria estornado", "valor seria devolvido"] },
