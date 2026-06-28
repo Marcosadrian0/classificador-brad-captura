@@ -421,16 +421,23 @@ function validarDataStr(s) {
   return dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12 && ano >= 1900 && ano <= 2100;
 }
 
+function limparNumerosProcesso(texto) {
+  // Remove números de processo CNJ: NNNNNNN-DD.AAAA.J.TT.OOOO
+  return texto.replace(/\d{5,7}-\d{2}\.\d{4}\.\d{1,2}\.\d{2,4}\.\d{4}/g, '');
+}
+
 function detectarData(texto) {
+  // Remove números de processo antes de buscar datas
+  const textoLimpo = limparNumerosProcesso(texto);
+
   const padroes = [
-    /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/gi,
-    /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/g,
-    /(\d{1,2}\s+de\s+\w+\s+de\s+\d{4})/gi,
-    /([A-Za-zÀ-ú]+\s+de\s+\d{4})/g
+    /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em|debitado em|cobrado em|ocorreu em|fato de)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/gi,
+    /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g,
+    /(\d{1,2}\s+de\s+(?:janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+\d{4})/gi
   ];
 
   for (const padrao of padroes) {
-    const matches = [...texto.matchAll(padrao)];
+    const matches = [...textoLimpo.matchAll(padrao)];
     for (const match of matches) {
       const candidato = match[1].trim();
       if (/^\d/.test(candidato)) {
@@ -541,6 +548,13 @@ function classificar(texto) {
   // Triagem inicial
   const tri = triagem(texto);
   if (tri && tri.triagem) {
+    const reusTriagem = detectarReus(texto);
+    const autoresTriagem = detectarAutores(texto);
+    // Ações de triagem (cautelar, superendividamento, etc.) não têm data de desconto relevante
+    const semDataTriagem = [18, 31, 57, 63, 323, 308, 6, 8];
+    const dataTriagem = semDataTriagem.includes(tri.codTipo) ? null : detectarData(texto);
+    const dataInicioTriagem = dataTriagem || "Não identificada na petição";
+    const analiseDetalhadaTriagem = gerarAnaliseDetalhadaTriagem(texto, tri, reusTriagem, autoresTriagem, dataInicioTriagem);
     return {
       gestor: tri.gestor,
       gestorNome: tri.gestor ? GESTORES[tri.gestor] : "Ver observação",
@@ -549,12 +563,13 @@ function classificar(texto) {
       codTipoNome: COD_TIPOS[tri.codTipo] || "",
       codSubtipo: tri.codSubtipo,
       codSubtipoNome: tri.nome,
-      dataInicio: detectarData(texto) || "Não identificada na petição",
-      reus: detectarReus(texto),
-      autores: detectarAutores(texto),
+      dataInicio: dataInicioTriagem,
+      reus: reusTriagem,
+      autores: autoresTriagem,
       confianca: { nivel: "Médio", obs: "Caso identificado pela triagem inicial. Confirme os dados antes de cadastrar." },
       justificativa: `Caso enquadrado na triagem inicial: ${tri.nome}.`,
-      obs: tri.nome
+      obs: tri.nome,
+      analiseDetalhada: analiseDetalhadaTriagem
     };
   }
 
@@ -894,6 +909,61 @@ function gerarExplicacaoConfianca(texto, gestor, subtipo, agencia, dataInicio, c
 
   if (problemas.length === 0) return `Nível ${confianca.nivel}: todos os campos foram identificados com precisão a partir de palavras-chave no texto da petição.`;
   return `Nível ${confianca.nivel}: ${problemas.join("; ")}. Recomenda-se confirmar estes campos antes de cadastrar no Brad Captura.`;
+}
+
+// ============================================================
+// ANÁLISE DETALHADA PARA CASOS DE TRIAGEM
+// ============================================================
+function gerarAnaliseCasoTriagem(texto, tri) {
+  const t = texto.toLowerCase();
+  if (tri.codTipo === 18) {
+    return "Ação cautelar identificada. Verificar se trata de produção antecipada de provas, exibição de documentos ou outra medida cautelar. O gestor e subtipo devem ser definidos manualmente com base no produto envolvido.";
+  }
+  if (tri.codTipo === 63) {
+    return "Ação de superendividamento identificada por pedido de repactuação de dívidas. Verificar todos os campos manualmente junto ao gestor responsável.";
+  }
+  if (tri.codTipo === 31) {
+    return "Execução fiscal identificada. Encaminhar para a esteira fiscal — não cadastrar no Brad Captura pelo fluxo padrão.";
+  }
+  if (tri.codTipo === 57) {
+    return "Ação em que o Bradesco figura como réu em contexto específico (honorários, leilão, consolidação de propriedade). Verificar manualmente.";
+  }
+  if (tri.codTipo === 1 || tri.codTipo === 93) {
+    return "Ação relacionada a planos econômicos (Bresser, Cruzado, Collor, Verão ou Real). Gestor 4225 aplicado automaticamente. Confirme os dados antes de cadastrar.";
+  }
+  return `Caso enquadrado na triagem inicial: ${tri.nome}. Verificar manualmente os campos antes de cadastrar.`;
+}
+
+function gerarAnaliseDetalhadaTriagem(texto, tri, reus, autores, dataInicio) {
+  const reusImplicitos = detectarReusImplicitos(texto);
+  const vara = detectarVara(texto);
+  const confiancaTriagem = { nivel: "Médio", obs: "" };
+
+  return {
+    analiseCaso: gerarAnaliseCasoTriagem(texto, tri),
+    gestorExplicacao: tri.gestor
+      ? `Gestor ${tri.gestor} (${GESTORES[tri.gestor] || ''}) aplicado automaticamente pela triagem inicial.`
+      : "Gestor a definir manualmente: ações cautelares e especiais não têm gestor determinado automaticamente pelo motor de regras.",
+    agenciaExplicacao: "Agência não determinada automaticamente para este tipo de ação.",
+    codTipoExplicacao: gerarExplicacaoCodTipo(texto, tri.codTipo, vara),
+    codSubtipoExplicacao: tri.codSubtipo
+      ? `Subtipo ${tri.codSubtipo} aplicado pela triagem inicial.`
+      : "Subtipo a verificar manualmente.",
+    dataExplicacao: dataInicio && dataInicio !== "Não identificada na petição"
+      ? `Data identificada no texto: ${dataInicio}.`
+      : "Não identificada na petição.",
+    reusImplicitos,
+    trechoUtilizado: encontrarSentenca(texto,
+      tri.codTipo === 18
+        ? ["produção antecipada", "exibição de documentos", "cautelar"]
+        : tri.codTipo === 63
+        ? ["superendividamento", "repactuação"]
+        : tri.codTipo === 31
+        ? ["execução fiscal", "tributo"]
+        : [tri.nome.toLowerCase()]
+    ),
+    confiancaExplicacao: `Nível Médio: caso identificado pela triagem inicial (${tri.nome}). Confirme gestor, subtipo e demais campos antes de cadastrar no Brad Captura.`
+  };
 }
 
 // ============================================================
