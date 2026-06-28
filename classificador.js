@@ -62,7 +62,7 @@ const SUBTIPOS = {
   // Gestor 4008
   "4008_90": [
     { cod: 296, nome: "PIX-GOLPE/ESTELIONATO/FRAUDE", palavras: ["pix", "golpe", "fraude", "estelionato", "transferência não reconhecida", "transferencia nao reconhecida"] },
-    { cod: 165, nome: "CONTA-TRANSF/PAGTO N RECONHEC VIA INTERNET BANKING", palavras: ["internet banking", "internet bank", "acesso indevido", "transferência via internet", "transferencia via internet"] },
+    { cod: 165, nome: "CONTA-TRANSF/PAGTO N RECONHEC VIA INTERNET BANKING", palavras: ["internet banking", "internet bank", "acesso indevido", "transferência via internet", "transferencia via internet", "internet banking empresarial", "sistema do bradesco", "appempresarial", "app empresarial", "ingressasse no sistema", "saques foram realizados", "transferências foram realizadas", "transferencias foram realizadas"] },
     { cod: 296, nome: "PIX-GOLPE/ESTELIONATO/FRAUDE", palavras: ["pix fraudulento", "pix não autorizado", "pix nao autorizado"] },
     { cod: 13, nome: "CONTA-BLOQUEIO INDEVIDO", palavras: ["bloqueio indevido", "conta bloqueada", "bloqueio da conta"] },
     { cod: 14, nome: "CONTA-BLOQUEIO JUDICIAL", palavras: ["bloqueio judicial", "penhora", "arresto"] },
@@ -91,7 +91,7 @@ const SUBTIPOS = {
     { cod: 211, nome: "CART CRED-CONTRATO NAO RECONHECIDO", palavras: ["contrato de cartão não reconhecido", "cartão não reconhecido"] },
     { cod: 205, nome: "CART CRED-SAQUE NAO RECONHECIDO", palavras: ["saque no cartão não reconhecido", "saque nao reconhecido no cartao"] },
     { cod: 207, nome: "CART CRED-COBRANCA DE ANUIDADE", palavras: ["anuidade", "cobrança de anuidade"] },
-    { cod: 209, nome: "CART CRED-COBRANCA PARCELA PAGA", palavras: ["parcela já paga", "parcela ja paga", "cobrança de parcela paga", "estorno não realizado", "estorno nao realizado"] },
+    { cod: 209, nome: "CART CRED-COBRANCA PARCELA PAGA", palavras: ["parcela já paga", "parcela ja paga", "cobrança de parcela paga", "estorno não realizado", "estorno nao realizado", "operação cancelada", "operacao cancelada", "operação não concluída", "operacao nao concluida", "estorno prometido", "prometido estorno", "valor seria estornado", "valor seria devolvido"] },
     { cod: 212, nome: "CART CRED-COBR SEGURO NAO RECONHECIDO", palavras: ["seguro no cartão não reconhecido", "seguro nao reconhecido no cartao"] },
     { cod: 265, nome: "CART DEBITO-SAQUE NAO RECONHECIDO", palavras: ["saque no débito não reconhecido", "saque no debito nao reconhecido"] },
     { cod: 268, nome: "CART DEBITO-COMPRA NAO RECONHECIDA", palavras: ["compra no débito não reconhecida", "compra no debito nao reconhecida"] },
@@ -283,16 +283,20 @@ function detectarGestor(texto) {
       t.includes("correspondente bancario")) return 4920;
 
   // Aplicativo / Token / Internet Banking com fraude
+  // Excluído quando há transferências/saques massivos (caso de fraude em conta corrente → 4008)
   if ((t.includes("aplicativo") || t.includes("app") || t.includes("token") || t.includes("internet banking")) &&
       (t.includes("fraude") || t.includes("golpe") || t.includes("não reconhec") || t.includes("nao reconhec")) &&
-      !t.includes("pix") && !t.includes("empréstimo") && !t.includes("emprestimo")) return 8706;
+      !t.includes("pix") && !t.includes("empréstimo") && !t.includes("emprestimo") &&
+      !t.includes("saques foram realizados") && !t.includes("transferências foram realizadas") &&
+      !t.includes("transferencias foram realizadas")) return 8706;
 
   // Cheque / FGTS
   if (t.includes("cheque") || t.includes("fgts") || t.includes("talão") || t.includes("talao")) return 4510;
 
-  // BDN / Caixa 24h
+  // BDN / Caixa 24h — inclui saque com cartão em posse do titular (clonagem/fraude em terminal)
   if ((t.includes("caixa eletrônico") || t.includes("caixa eletronico") || t.includes("caixa 24") ||
-       t.includes("bdn") || t.includes("saque em caixa")) &&
+       t.includes("bdn") || t.includes("saque em caixa") ||
+       (t.includes("saque") && (t.includes("posse") || t.includes("cartão magnético") || t.includes("cartao magnetico")))) &&
       !t.includes("pix") && !t.includes("empréstimo") && !t.includes("emprestimo")) return 4312;
 
   // Atendimento em agência (problemas presenciais)
@@ -350,7 +354,7 @@ function detectarSubtipo(texto, gestor, codTipo) {
   for (const sub of lista) {
     for (const palavra of sub.palavras) {
       if (t.includes(palavra.toLowerCase())) {
-        return sub;
+        return { cod: sub.cod, nome: sub.nome, isFallback: false };
       }
     }
   }
@@ -374,7 +378,8 @@ function detectarSubtipo(texto, gestor, codTipo) {
     4040: { cod: 2, nome: "CADASTRO IRREGULAR" }
   };
 
-  return fallbacks[gestor] || { cod: 0, nome: "VERIFICAR MANUALMENTE" };
+  const fb = fallbacks[gestor] || { cod: 0, nome: "VERIFICAR MANUALMENTE" };
+  return { ...fb, isFallback: true };
 }
 
 // ============================================================
@@ -422,31 +427,70 @@ function validarDataStr(s) {
 }
 
 function limparNumerosProcesso(texto) {
-  // Remove números de processo CNJ: NNNNNNN-DD.AAAA.J.TT.OOOO
   return texto.replace(/\d{5,7}-\d{2}\.\d{4}\.\d{1,2}\.\d{2,4}\.\d{4}/g, '');
 }
 
-function detectarData(texto) {
-  // Remove números de processo antes de buscar datas
-  const textoLimpo = limparNumerosProcesso(texto);
+function limparMetadados(texto) {
+  return texto
+    .replace(/Gerado por[^\n]*em \d{2}\/\d{2}\/\d{4}[^\n]*/gi, '')
+    .replace(/Este documento foi gerado[^\n]*/gi, '')
+    .replace(/Assinado eletronicamente por:[^\n]*/gi, '')
+    .replace(/Num\. \d+ - Pág\. \d+/gi, '')
+    .replace(/Número do documento:[^\n]*/gi, '')
+    .replace(/https?:\/\/\S+/gi, '');
+}
 
-  const padroes = [
-    /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em|debitado em|cobrado em|ocorreu em|fato de)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/gi,
-    /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g,
-    /(\d{1,2}\s+de\s+(?:janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+\d{4})/gi
-  ];
+function detectarDataContextual(textoLimpo, keywords) {
+  const mesRe = 'janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro';
+  const textualRe = new RegExp(`\\d{1,2}\\s+de\\s+(?:${mesRe})\\s+de\\s+\\d{4}`, 'gi');
+  const numericRe = /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/g;
 
-  for (const padrao of padroes) {
-    const matches = [...textoLimpo.matchAll(padrao)];
-    for (const match of matches) {
-      const candidato = match[1].trim();
-      if (/^\d/.test(candidato)) {
-        if (validarDataStr(candidato)) return candidato;
-      } else {
-        return candidato;
-      }
+  for (const kw of keywords) {
+    const idx = textoLimpo.toLowerCase().indexOf(kw.toLowerCase());
+    if (idx < 0) continue;
+    const context = textoLimpo.substring(Math.max(0, idx - 500), idx + 100);
+    const textualMatches = [...context.matchAll(textualRe)];
+    if (textualMatches.length > 0) return textualMatches[textualMatches.length - 1][0].trim();
+    const numericMatches = [...context.matchAll(numericRe)];
+    for (let i = numericMatches.length - 1; i >= 0; i--) {
+      if (validarDataStr(numericMatches[i][0])) return numericMatches[i][0];
     }
   }
+  return null;
+}
+
+function detectarData(texto) {
+  const textoLimpo = limparNumerosProcesso(limparMetadados(texto));
+  const mesRe = 'janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro';
+
+  // 1. Busca contextual próxima ao evento financeiro (mais confiável)
+  const dataContextual = detectarDataContextual(textoLimpo, [
+    'foi debitado automaticamente', 'foi debitado', 'debitado automaticamente',
+    'saque não autorizado', 'saque no valor', 'saque indevido', 'saque de r$',
+    'saques foram realizados', 'transferências foram realizadas', 'transferencias foram realizadas',
+    'transação não autorizada', 'transacao nao autorizada',
+    'valor foi subtraído', 'valor subtraído'
+  ]);
+  if (dataContextual) return dataContextual;
+
+  // 2. "No dia" + data textual
+  const padrao2 = new RegExp(`no\\s+dia\\s+(\\d{1,2}\\s+de\\s+(?:${mesRe})\\s+de\\s+\\d{4})`, 'gi');
+  for (const m of [...textoLimpo.matchAll(padrao2)]) return m[1].trim();
+
+  // 3. Contextual com data numérica (sem ponto para evitar falsos positivos)
+  const padrao3 = /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em|inicio em)\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/gi;
+  for (const m of [...textoLimpo.matchAll(padrao3)]) {
+    if (validarDataStr(m[1])) return m[1];
+  }
+
+  // 4. Data numérica simples (apenas / ou -, não ponto)
+  for (const m of [...textoLimpo.matchAll(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g)]) {
+    if (validarDataStr(m[1])) return m[1];
+  }
+
+  // 5. Data textual genérica
+  const padrao5 = new RegExp(`(\\d{1,2}\\s+de\\s+(?:${mesRe})\\s+de\\s+\\d{4})`, 'gi');
+  for (const m of [...textoLimpo.matchAll(padrao5)]) return m[1].trim();
 
   return null;
 }
@@ -517,7 +561,7 @@ function avaliarConfianca(texto, gestor, subtipo) {
   if (gestor !== 4040) pontos += 2;
 
   // Subtipo identificado com palavra-chave (não fallback)
-  if (subtipo && subtipo.cod !== 0) pontos += 1;
+  if (subtipo && subtipo.cod !== 0 && !subtipo.isFallback) pontos += 1;
 
   // Agência identificada
   if (detectarAgencia(texto, gestor) !== "0") pontos += 1;
@@ -712,11 +756,22 @@ function gerarAnaliseCaso(texto, gestor, gestorNome, vara, reus) {
     return s;
   }
   if (gestor === 4008) {
+    const temPJ = t.includes("empresa") || t.includes("ltda") || t.includes("fomento") || t.includes("cnpj") || t.includes("sócia") || t.includes("socia");
+    const temEngenhariaS = t.includes("whatsapp") || t.includes("appempresarial") || t.includes("ingressasse no sistema") || t.includes("sistema empresarial") || t.includes("falsa gerente");
+    const temTransfNaoAuth = t.includes("saques foram realizados") || t.includes("transferências foram realizadas") || t.includes("transferencias foram realizadas");
     const temPix = t.includes("pix");
     const temFraude = t.includes("fraude") || t.includes("golpe") || t.includes("estelionato");
+    if (temPJ && (temEngenhariaS || temTransfNaoAuth)) {
+      const canal = temEngenhariaS ? "falsa gerente via WhatsApp" : "acesso indevido ao sistema bancário";
+      return `A autora (pessoa jurídica) sofreu fraude por engenharia social (${canal}), resultando em transferências não autorizadas via Internet Banking empresarial. O banco ainda notificou encerramento da conta após as contestações. A ação tramita em ${varaNome}.`;
+    }
     if (temPix && temFraude) return `O autor alega ter sido vítima de fraude ou golpe via PIX, com transferência não autorizada de valores. A ação tramita em ${varaNome}.`;
     if (temPix) return `O autor contesta transferência via PIX não reconhecida em conta corrente. A ação tramita em ${varaNome}.`;
     return `O autor contesta movimentação não reconhecida em conta corrente junto ao Bradesco. A ação tramita em ${varaNome}.`;
+  }
+  if (gestor === 4312) {
+    const temPosse = t.includes("posse") || t.includes("cartão magnético") || t.includes("cartao magnetico");
+    return `O autor contesta saque não reconhecido em terminal de autoatendimento (BDN/caixa 24h)${temPosse ? ", com o cartão sempre em posse do titular" : ""}. A ação tramita em ${varaNome}.`;
   }
   if (gestor === 4840) {
     const temConsignado = t.includes("consignado");
@@ -757,9 +812,17 @@ function gerarExplicacaoGestor(texto, gestor, gestorNome) {
     return `O evento gerador é a cobrança de dívida cedida a terceiro (${sinal}), originária de contrato não reconhecido ou prescrito junto ao Bradesco.`;
   }
   if (gestor === 4008) {
+    const temTransfNaoAuth = t.includes("saques foram realizados") || t.includes("transferências foram realizadas") || t.includes("transferencias foram realizadas");
+    const temEngenhariaS = t.includes("whatsapp") || t.includes("appempresarial") || t.includes("ingressasse no sistema");
+    if (temEngenhariaS || temTransfNaoAuth) return "O evento gerador são as transferências não reconhecidas realizadas via Internet Banking empresarial, após fraude por engenharia social (acesso indevido ao sistema bancário).";
     if (t.includes("pix") && (t.includes("fraude") || t.includes("golpe"))) return "O evento gerador é fraude ou golpe via PIX, com transferência não autorizada da conta do autor.";
     if (t.includes("pix")) return "O evento gerador é transferência via PIX não reconhecida pelo autor.";
     return "O evento gerador é movimentação ou transferência não reconhecida em conta corrente.";
+  }
+  if (gestor === 4312) {
+    const temPosse = t.includes("posse") || t.includes("cartão magnético") || t.includes("cartao magnetico");
+    if (temPosse) return "O evento gerador é um saque não reconhecido realizado sem autorização do titular, com o cartão em sua posse, o que caracteriza fraude em terminal de autoatendimento (BDN/caixa 24h).";
+    return "O evento gerador é saque não reconhecido ou problema operacional em caixa eletrônico (BDN) do Bradesco.";
   }
   if (gestor === 4840) {
     if (t.includes("consignado")) return "O evento gerador é desconto de empréstimo consignado não reconhecido ou não autorizado em folha de pagamento.";
@@ -831,7 +894,10 @@ function gerarExplicacaoSubtipo(texto, subtipo, gestor) {
 
   const base = `Entre os subtipos disponíveis para o gestor ${gestor}, o ${subtipo.cod} (${subtipo.nome}) é o mais aderente ao caso.`;
   if (palavraEncontrada) return `${base} Identificado com base na expressão "${palavraEncontrada}" no texto.`;
-  if (ehFallback) return `${base} Aplicado como subtipo padrão para este gestor, pois nenhuma palavra-chave específica foi encontrada no texto.`;
+  if (ehFallback) {
+    if (gestor === 4312) return `${base} Aplicado como subtipo padrão para saques não reconhecidos em BDN. A petição não especifica o canal exato (BDN, caixa humano ou digital) — confirme o extrato para validar.`;
+    return `${base} Aplicado como subtipo padrão para este gestor, pois nenhuma palavra-chave específica foi encontrada no texto.`;
+  }
   return base;
 }
 
@@ -900,7 +966,13 @@ function gerarExplicacaoConfianca(texto, gestor, subtipo, agencia, dataInicio, c
     return true;
   })();
 
-  if (ehFallback) problemas.push("subtipo aplicado por fallback, sem correspondência exata de palavra-chave");
+  if (ehFallback) {
+    if (gestor === 4312) {
+      problemas.push("gestor 4312 inferido pelo evento (saque não reconhecido com cartão em posse), mas o canal da transação não foi confirmado na petição — pode ser BDN, caixa humano ou digital");
+    } else {
+      problemas.push("subtipo aplicado por fallback, sem correspondência exata de palavra-chave");
+    }
+  }
   if (!agencia || agencia === "0") problemas.push("agência não identificada no texto");
   if (!dataInicio || dataInicio === "Não identificada na petição") problemas.push("data de início não encontrada");
   if (reusImplicitos && reusImplicitos.length > 0) {
