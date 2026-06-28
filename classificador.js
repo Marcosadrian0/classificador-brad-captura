@@ -210,8 +210,11 @@ function triagem(texto) {
 // ============================================================
 function detectarVara(texto) {
   const t = texto.toLowerCase();
-  if (t.includes("juizado especial") || t.includes("jecrim") || t.includes("jec ") ||
-      t.includes("juizado especial cível") || t.includes("juizado especial civel")) {
+  if (t.includes("juizado especial") || t.includes("juizados especiais") ||
+      t.includes("juizados especial") || t.includes("juizado especiais") ||
+      t.includes("jecrim") || t.includes("jec ") || t.includes("(jec)") ||
+      t.includes("turma recursal") || t.includes("colégio recursal") ||
+      t.includes("colegio recursal")) {
     return "JEC";
   }
   return "VARA_CIVEL";
