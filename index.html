@@ -151,11 +151,27 @@
   .footer { margin-top: 24px; text-align: center; font-size: 11px; font-weight: 300; color: #4A545E; }
   .footer strong { color: #023631; font-weight: 600; }
 
+  /* ANÁLISE DETALHADA */
+  .analise-box { background: #fafafa; border: 1px solid #e0e3e8; border-radius: 9px; padding: 20px 24px; margin-top: 4px; font-size: 13px; line-height: 1.8; color: #012824; }
+  .analise-titulo { font-size: 13px; font-weight: 600; color: #023631; margin-bottom: 8px; }
+  .analise-texto { font-weight: 300; margin-bottom: 2px; }
+  .analise-campo { font-weight: 600; color: #012824; margin-top: 16px; margin-bottom: 4px; }
+  .analise-sep { height: 1px; background: #e0e3e8; margin: 16px 0; }
+  .analise-lista { list-style: disc; padding-left: 20px; margin: 6px 0; }
+  .analise-lista li { font-weight: 300; font-size: 12px; line-height: 1.8; }
+  .analise-lista li strong { font-weight: 600; color: #b91c1c; }
+  .analise-lbl { font-size: 10px; font-weight: 600; color: #4A545E; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 14px; margin-bottom: 6px; }
+  .analise-trecho { background: #f0f7f7; border-left: 3px solid #075056; border-radius: 7px; padding: 10px 14px; font-size: 12px; font-style: italic; color: #012824; line-height: 1.7; }
+  .analise-conf-Alto { color: #065f46; font-weight: 600; }
+  .analise-conf-Médio { color: #92400e; font-weight: 600; }
+  .analise-conf-Baixo { color: #991b1b; font-weight: 600; }
+
   @media (max-width: 600px) {
     .fields-grid { grid-template-columns: 1fr; }
     .field.full { grid-column: 1; }
     body { padding: 16px 8px 48px; }
     .header, .body, .result-wrap { padding: 16px; }
+    .analise-box { padding: 16px; }
   }
 </style>
 </head>
@@ -290,6 +306,73 @@ function executarClassificacao() {
   // Obs de confiança
   if (r.confianca.obs) {
     html += `<div class="obs-box">&#9888; ${esc(r.confianca.obs)}</div>`;
+  }
+
+  // Análise detalhada
+  if (r.analiseDetalhada) {
+    const ad = r.analiseDetalhada;
+    html += `<div class="divider"></div>
+    <div class="sec-lbl">Análise detalhada</div>
+    <div class="analise-box">
+      <div class="analise-titulo">Análise do caso:</div>
+      <div class="analise-texto">${esc(ad.analiseCaso)}</div>
+      <div class="analise-sep"></div>
+      <div class="analise-campo">GESTOR PRINCIPAL: ${esc(r.gestor)} — ${esc(r.gestorNome)}</div>
+      <div class="analise-texto">${esc(ad.gestorExplicacao)}</div>
+      <div class="analise-campo">AGÊNCIA: ${esc(r.agencia)}</div>
+      <div class="analise-texto">${esc(ad.agenciaExplicacao)}</div>
+      <div class="analise-campo">COD_TIPO: ${esc(r.codTipo)} — ${esc(r.codTipoNome)}</div>
+      <div class="analise-texto">${esc(ad.codTipoExplicacao)}</div>
+      <div class="analise-campo">COD_SUBTIPO: ${esc(r.codSubtipo)} — ${esc(r.codSubtipoNome)}</div>
+      <div class="analise-texto">${esc(ad.codSubtipoExplicacao)}</div>
+      <div class="analise-campo">DATA DE INÍCIO DOS DESCONTOS: <span style="font-weight:300">${esc(ad.dataExplicacao)}</span></div>
+      <div class="analise-sep"></div>
+      <div class="analise-campo">RÉUS ADICIONAIS:</div>`;
+
+    const temReus = (r.reus && r.reus.length > 0) || (ad.reusImplicitos && ad.reusImplicitos.length > 0);
+
+    if (r.reus && r.reus.length > 0) {
+      for (const reu of r.reus) {
+        const gestorSecNome = reu.gestor ? (GESTORES[reu.gestor] || '') : '';
+        html += `<div class="analise-texto" style="margin-top:8px">Réu: <strong>${esc(reu.nome)}</strong>${reu.cnpj ? ` — CNPJ: ${esc(reu.cnpj)}` : ''}</div>
+        <ul class="analise-lista">
+          <li>Agência: 0</li>
+          <li>Gestor Secundário: ${reu.gestor ? `${esc(reu.gestor)} — ${esc(gestorSecNome)}` : 'não aplicável'}</li>
+          <li>Campo: ${reu.cnpj ? 'Nome do Réu + CNPJ' : 'Nome do Réu'}</li>
+        </ul>`;
+      }
+    }
+
+    if (ad.reusImplicitos && ad.reusImplicitos.length > 0) {
+      for (const ri of ad.reusImplicitos) {
+        html += `<div class="analise-texto" style="margin-top:8px">Réu: ${esc(ri.descricao)}, sem nome ou CNPJ identificados expressamente na petição.</div>
+        <ul class="analise-lista">
+          <li>Agência: 0</li>
+          <li>Gestor Secundário: não aplicável</li>
+          <li>Campo: Nome do Réu + CNPJ</li>
+          <li><strong>Atenção: ${esc(ri.observacao)}</strong></li>
+        </ul>`;
+      }
+    }
+
+    if (!temReus) {
+      html += `<div class="analise-texto">Nenhum réu adicional identificado no texto.</div>`;
+    }
+
+    html += `<div class="analise-campo" style="margin-top:16px">AUTORES ADICIONAIS: <span style="font-weight:300">${r.autores && r.autores.length > 0 ? r.autores.map(esc).join(', ') : 'Nenhum.'}</span></div>`;
+
+    html += `<div class="analise-sep"></div>
+      <div class="analise-lbl">Justificativa</div>
+      <div class="analise-texto">${esc(r.justificativa)}</div>`;
+
+    if (ad.trechoUtilizado) {
+      html += `<div class="analise-lbl" style="margin-top:14px">Trecho utilizado</div>
+      <div class="analise-trecho">"${esc(ad.trechoUtilizado)}"</div>`;
+    }
+
+    html += `<div class="analise-lbl" style="margin-top:14px">Nível de confiança</div>
+      <div class="analise-texto"><span class="analise-conf-${r.confianca.nivel}">${esc(r.confianca.nivel)}</span> — ${esc(ad.confiancaExplicacao)}</div>
+    </div>`;
   }
 
   el.innerHTML = html;

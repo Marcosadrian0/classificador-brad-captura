@@ -583,9 +583,13 @@ function classificar(texto) {
   // Justificativa automática
   const justificativa = gerarJustificativa(texto, gestor, codTipo, subtipo, vara);
 
+  // Análise detalhada
+  const gestorNome = GESTORES[gestor] || "Verificar";
+  const analiseDetalhada = gerarAnaliseDetalhada(texto, gestor, gestorNome, codTipo, subtipo, vara, agencia, dataInicio, reus, autores, confianca);
+
   return {
     gestor,
-    gestorNome: GESTORES[gestor] || "Verificar",
+    gestorNome,
     agencia,
     codTipo,
     codTipoNome: COD_TIPOS[codTipo] || "",
@@ -595,7 +599,8 @@ function classificar(texto) {
     reus,
     autores,
     confianca,
-    justificativa
+    justificativa,
+    analiseDetalhada
   };
 }
 
@@ -611,6 +616,286 @@ function gerarJustificativa(texto, gestor, codTipo, subtipo, vara) {
          `Ação classificada como COD_TIPO ${codTipo} por tramitar em ${varaNome}. ` +
          `Subtipo ${subtipo?.cod || "?"} (${subNome}) aplicado com base nas palavras-chave identificadas no texto. ` +
          `Revise o resultado antes de cadastrar no Brad Captura, especialmente em casos com múltiplos produtos ou réus adicionais.`;
+}
+
+// ============================================================
+// PALAVRAS-CHAVE POR GESTOR (para localizar trecho relevante)
+// ============================================================
+const GESTOR_PALAVRAS_CHAVE = {
+  4120: ["empresa de cobranç", "recuperação de crédito", "recuperacao de credito", "dívida cedida", "divida cedida", "cessão de crédito", "credor originário", "dívida prescrita"],
+  4008: ["pix", "transferência não reconhecida", "golpe pix", "fraude pix", "estelionato"],
+  4840: ["empréstimo não reconhecido", "contrato não reconhecido", "consignado", "ccb", "cheque especial"],
+  8627: ["cartão de crédito", "cartão de débito", "fatura", "anuidade", "compra não autorizada"],
+  4312: ["caixa eletrônico", "caixa 24", "saque não reconhecido"],
+  4160: ["discriminação", "funcionário", "tempo de espera", "fila de espera"],
+  4859: ["assalto", "roubo na agência", "porta giratória"],
+  5310: ["seguro de vida", "previdência", "plano de previdência"],
+  5800: ["seguro residencial", "seguro auto"],
+  6565: ["consórcio", "consorcio"],
+  5404: ["bradescard", "cartão c&a"],
+  4920: ["bradesco expresso", "correspondente bancário"],
+  8041: ["financiamento de veículo", "gravame"],
+  4900: ["câmbio", "dólar", "remessa internacional"],
+  8706: ["aplicativo fraude", "token indevido", "internet banking fraude"],
+  4510: ["cheque", "fgts"],
+  4225: ["poupança", "cdb", "lci"],
+  4230: ["imóvel", "financiamento imobiliário"],
+  4229: ["atendimento telefônico"],
+  4769: ["next", "conta digital next"],
+  9080: ["losango"],
+  5203: ["digio"],
+  7528: ["bitz"]
+};
+
+// ============================================================
+// UTILITÁRIO: ENCONTRAR SENTENÇA RELEVANTE NO TEXTO
+// ============================================================
+function encontrarSentenca(texto, palavras) {
+  const frases = texto.split(/[.!?]+\s+/);
+  for (const palavra of palavras) {
+    const lower = palavra.toLowerCase();
+    for (const frase of frases) {
+      if (frase.toLowerCase().includes(lower) && frase.trim().length > 30) {
+        const f = frase.trim();
+        return f.length > 400 ? f.slice(0, 397) + '...' : f;
+      }
+    }
+  }
+  return null;
+}
+
+// ============================================================
+// GERAÇÃO: ANÁLISE DO CASO
+// ============================================================
+function gerarAnaliseCaso(texto, gestor, gestorNome, vara, reus) {
+  const t = texto.toLowerCase();
+  const varaNome = vara === "JEC" ? "Juizado Especial Cível" : "Vara Cível comum";
+
+  if (gestor === 4120) {
+    const temEmpresa = t.includes("empresa de cobranç") || t.includes("recuperação de crédito") || t.includes("recuperacao de credito");
+    const temPrescricao = t.includes("prescri");
+    const temNaoReconhece = t.includes("não reconhece") || t.includes("nao reconhece") || t.includes("não reconhecida") || t.includes("nao reconhecida");
+    let s = "O autor contesta cobrança de dívida cedida pelo Bradesco";
+    if (temEmpresa) s += " a empresa de recuperação de crédito";
+    if (temNaoReconhece) s += ", que não reconhece como válida ou exigível";
+    if (temPrescricao) s += " e alega prescrição da dívida";
+    s += `. A ação tramita em ${varaNome}.`;
+    return s;
+  }
+  if (gestor === 4008) {
+    const temPix = t.includes("pix");
+    const temFraude = t.includes("fraude") || t.includes("golpe") || t.includes("estelionato");
+    if (temPix && temFraude) return `O autor alega ter sido vítima de fraude ou golpe via PIX, com transferência não autorizada de valores. A ação tramita em ${varaNome}.`;
+    if (temPix) return `O autor contesta transferência via PIX não reconhecida em conta corrente. A ação tramita em ${varaNome}.`;
+    return `O autor contesta movimentação não reconhecida em conta corrente junto ao Bradesco. A ação tramita em ${varaNome}.`;
+  }
+  if (gestor === 4840) {
+    const temConsignado = t.includes("consignado");
+    const temNaoReconhece = t.includes("não reconhece") || t.includes("nao reconhece") || t.includes("não reconhecido") || t.includes("nao reconhecido");
+    if (temConsignado) return `O autor contesta desconto de empréstimo consignado${temNaoReconhece ? " não reconhecido" : ""} em folha de pagamento. A ação tramita em ${varaNome}.`;
+    return `O autor contesta empréstimo ou financiamento${temNaoReconhece ? " não reconhecido" : ""} junto ao Bradesco. A ação tramita em ${varaNome}.`;
+  }
+  if (gestor === 8627) {
+    const temDebito = t.includes("débito") || t.includes("debito");
+    return `O autor contesta cobrança ou transação não reconhecida em cartão de ${temDebito ? "débito" : "crédito"} Bradesco. A ação tramita em ${varaNome}.`;
+  }
+  if (gestor === 4160) return `O autor relata problema no atendimento em agência Bradesco. A ação tramita em ${varaNome}.`;
+  if (gestor === 4859) return `O autor foi vítima de assalto ou incidente de segurança em dependência do Bradesco. A ação tramita em ${varaNome}.`;
+  if (gestor === 6565) return `O autor contesta irregularidade em contrato de consórcio Bradesco. A ação tramita em ${varaNome}.`;
+  if (gestor === 5310) return `O autor contesta desconto de seguro de vida ou previdência não reconhecido em sua conta. A ação tramita em ${varaNome}.`;
+  if (gestor === 4312) return `O autor contesta saque não reconhecido ou problema operacional em caixa eletrônico Bradesco. A ação tramita em ${varaNome}.`;
+  if (gestor === 5404) return `O autor contesta cobranças indevidas referentes a cartão Bradescard. A ação tramita em ${varaNome}.`;
+  if (gestor === 4230) return `O autor contesta irregularidade em contrato de financiamento imobiliário ou leasing junto ao Bradesco. A ação tramita em ${varaNome}.`;
+  return `Ação contra o Bradesco relacionada a ${gestorNome.toLowerCase()}. A ação tramita em ${varaNome}.`;
+}
+
+// ============================================================
+// GERAÇÃO: EXPLICAÇÃO DO GESTOR PRINCIPAL
+// ============================================================
+function gerarExplicacaoGestor(texto, gestor, gestorNome) {
+  const t = texto.toLowerCase();
+
+  if (gestor === 4120) {
+    const sinal = t.includes("recuperação de crédito") || t.includes("recuperacao de credito")
+      ? "empresa de recuperação de crédito"
+      : "cessão de crédito a terceiro";
+    return `O evento gerador é a cobrança de dívida cedida a terceiro (${sinal}), originária de contrato não reconhecido ou prescrito junto ao Bradesco.`;
+  }
+  if (gestor === 4008) {
+    if (t.includes("pix") && (t.includes("fraude") || t.includes("golpe"))) return "O evento gerador é fraude ou golpe via PIX, com transferência não autorizada da conta do autor.";
+    if (t.includes("pix")) return "O evento gerador é transferência via PIX não reconhecida pelo autor.";
+    return "O evento gerador é movimentação ou transferência não reconhecida em conta corrente.";
+  }
+  if (gestor === 4840) {
+    if (t.includes("consignado")) return "O evento gerador é desconto de empréstimo consignado não reconhecido ou não autorizado em folha de pagamento.";
+    return "O evento gerador é empréstimo ou financiamento não reconhecido junto ao Bradesco.";
+  }
+  if (gestor === 8627) {
+    if (t.includes("não solicitado") || t.includes("nao solicitado")) return "O evento gerador é emissão de cartão de crédito não solicitado pelo autor.";
+    if (t.includes("compra não autorizada") || t.includes("compra nao autorizada")) return "O evento gerador é cobrança de compra não autorizada no cartão de crédito.";
+    return "O evento gerador é cobrança ou transação não reconhecida em cartão de crédito ou débito Bradesco.";
+  }
+  if (gestor === 4160) return "O evento gerador é problema de atendimento presencial em agência bancária Bradesco.";
+  if (gestor === 4859) return "O evento gerador é assalto, roubo ou incidente de segurança em dependência do Bradesco.";
+  if (gestor === 6565) return "O evento gerador é irregularidade em contrato de consórcio administrado pelo Bradesco.";
+  if (gestor === 5310) return "O evento gerador é desconto de seguro de vida ou previdência não reconhecido pelo autor.";
+  if (gestor === 4312) return "O evento gerador é saque não reconhecido ou problema operacional em caixa eletrônico (BDN) do Bradesco.";
+  if (gestor === 5404) return "O evento gerador é cobrança indevida relacionada ao cartão Bradescard (private label).";
+  if (gestor === 4230) return "O evento gerador é irregularidade em contrato de financiamento imobiliário ou leasing.";
+  return `Gestor ${gestor} (${gestorNome}) identificado como responsável pelo evento gerador com base no conteúdo da petição.`;
+}
+
+// ============================================================
+// GERAÇÃO: EXPLICAÇÃO DO COD_TIPO
+// ============================================================
+function gerarExplicacaoCodTipo(texto, codTipo, vara) {
+  const varaMatch = texto.match(/(?:Vara\s+C[íi]vel[^,\n]{0,60}|Juizado\s+Especial[^,\n]{0,60}|Comarca\s+de\s+[^,\n]{0,40})/i);
+  const varaTexto = varaMatch ? varaMatch[0].trim() : null;
+
+  if (codTipo === 90) {
+    if (varaTexto) return `Cabeçalho indica ${varaTexto}.`;
+    return "Ação tramita em Vara Cível (padrão quando Juizado Especial não é identificado).";
+  }
+  if (codTipo === 91) {
+    if (varaTexto) return `Cabeçalho indica ${varaTexto}.`;
+    return "Cabeçalho indica Juizado Especial Cível.";
+  }
+  if (codTipo === 8914) return "Ação revisional em Vara Cível, identificada por pedido de revisão de contrato ou contestação de taxa de juros.";
+  if (codTipo === 8921) return "Ação revisional em Juizado Especial, identificada por pedido de revisão de contrato ou contestação de taxa de juros.";
+  if (codTipo === 63) return "Ação de superendividamento identificada por pedido de repactuação de dívidas.";
+  if (codTipo === 57) return "Ação em que o Bradesco figura como réu em contexto específico (banco réu).";
+  if (codTipo === 18) return "Ação cautelar identificada por pedido de produção antecipada de provas ou exibição de documentos.";
+  return `COD_TIPO ${codTipo} aplicado conforme tipo de ação identificado no texto.`;
+}
+
+// ============================================================
+// GERAÇÃO: EXPLICAÇÃO DO COD_SUBTIPO
+// ============================================================
+function gerarExplicacaoSubtipo(texto, subtipo, gestor) {
+  if (!subtipo || subtipo.cod === 0) return "Subtipo não identificado com precisão. Verificar manualmente.";
+
+  const t = texto.toLowerCase();
+  const chave = `${gestor}_90`;
+  const lista = SUBTIPOS[chave] || [];
+  let palavraEncontrada = null;
+  let ehFallback = true;
+
+  for (const sub of lista) {
+    if (sub.cod === subtipo.cod) {
+      for (const palavra of sub.palavras) {
+        if (t.includes(palavra.toLowerCase())) {
+          palavraEncontrada = palavra;
+          ehFallback = false;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  const base = `Entre os subtipos disponíveis para o gestor ${gestor}, o ${subtipo.cod} (${subtipo.nome}) é o mais aderente ao caso.`;
+  if (palavraEncontrada) return `${base} Identificado com base na expressão "${palavraEncontrada}" no texto.`;
+  if (ehFallback) return `${base} Aplicado como subtipo padrão para este gestor, pois nenhuma palavra-chave específica foi encontrada no texto.`;
+  return base;
+}
+
+// ============================================================
+// DETECÇÃO DE RÉUS IMPLÍCITOS (sem nome/CNPJ identificado)
+// ============================================================
+function detectarReusImplicitos(texto) {
+  const t = texto.toLowerCase();
+  const implicitos = [];
+
+  const jaIdentificados = ["picpay", "nubank", "mercado pago", "banco inter", "odontoprev",
+    "bradescard", "losango", "bradesco expresso", "ativos s.a", "recovery", "digio"];
+  const temConhecido = jaIdentificados.some(nome => t.includes(nome));
+
+  if (!temConhecido &&
+      (t.includes("empresa de cobranç") || t.includes("empresa de cobranca") ||
+       t.includes("recuperação de crédito") || t.includes("recuperacao de credito"))) {
+    implicitos.push({
+      descricao: "empresa de recuperação de crédito",
+      observacao: "o nome e CNPJ desta empresa não foram identificados no texto fornecido. É necessário verificar o polo passivo completo da petição para cadastrar corretamente."
+    });
+  }
+
+  return implicitos;
+}
+
+// ============================================================
+// ENCONTRAR TRECHO RELEVANTE NO TEXTO
+// ============================================================
+function encontrarTrecho(texto, gestor, subtipo) {
+  const chave = `${gestor}_90`;
+  const lista = SUBTIPOS[chave] || [];
+
+  if (subtipo) {
+    for (const sub of lista) {
+      if (sub.cod === subtipo.cod) {
+        const trecho = encontrarSentenca(texto, sub.palavras);
+        if (trecho) return trecho;
+        break;
+      }
+    }
+  }
+
+  const palavrasGestor = GESTOR_PALAVRAS_CHAVE[gestor] || [];
+  return encontrarSentenca(texto, palavrasGestor);
+}
+
+// ============================================================
+// GERAÇÃO: EXPLICAÇÃO DO NÍVEL DE CONFIANÇA
+// ============================================================
+function gerarExplicacaoConfianca(texto, gestor, subtipo, agencia, dataInicio, confianca, reusImplicitos) {
+  const t = texto.toLowerCase();
+  const problemas = [];
+
+  if (gestor === 4040) problemas.push("gestor não identificado com precisão (genérico)");
+
+  const ehFallback = (() => {
+    if (!subtipo || subtipo.cod === 0) return true;
+    const chave = `${gestor}_90`;
+    const lista = SUBTIPOS[chave] || [];
+    for (const sub of lista) {
+      if (sub.cod === subtipo.cod) {
+        return !sub.palavras.some(p => t.includes(p.toLowerCase()));
+      }
+    }
+    return true;
+  })();
+
+  if (ehFallback) problemas.push("subtipo aplicado por fallback, sem correspondência exata de palavra-chave");
+  if (!agencia || agencia === "0") problemas.push("agência não identificada no texto");
+  if (!dataInicio || dataInicio === "Não identificada na petição") problemas.push("data de início não encontrada");
+  if (reusImplicitos && reusImplicitos.length > 0) {
+    problemas.push(`réu adicional sem nome/CNPJ identificado (${reusImplicitos[0].descricao})`);
+  }
+
+  if (problemas.length === 0) return `Nível ${confianca.nivel}: todos os campos foram identificados com precisão a partir de palavras-chave no texto da petição.`;
+  return `Nível ${confianca.nivel}: ${problemas.join("; ")}. Recomenda-se confirmar estes campos antes de cadastrar no Brad Captura.`;
+}
+
+// ============================================================
+// MONTAGEM DA ANÁLISE DETALHADA
+// ============================================================
+function gerarAnaliseDetalhada(texto, gestor, gestorNome, codTipo, subtipo, vara, agencia, dataInicio, reus, autores, confianca) {
+  const reusImplicitos = detectarReusImplicitos(texto);
+
+  return {
+    analiseCaso: gerarAnaliseCaso(texto, gestor, gestorNome, vara, reus),
+    gestorExplicacao: gerarExplicacaoGestor(texto, gestor, gestorNome),
+    agenciaExplicacao: agencia && agencia !== "0"
+      ? `Agência ${agencia} identificada no texto da petição.`
+      : "Não há agência identificada na petição para o autor.",
+    codTipoExplicacao: gerarExplicacaoCodTipo(texto, codTipo, vara),
+    codSubtipoExplicacao: gerarExplicacaoSubtipo(texto, subtipo, gestor),
+    dataExplicacao: dataInicio && dataInicio !== "Não identificada na petição"
+      ? `Data identificada no texto: ${dataInicio}.`
+      : "Não identificada na petição.",
+    reusImplicitos,
+    trechoUtilizado: encontrarTrecho(texto, gestor, subtipo),
+    confiancaExplicacao: gerarExplicacaoConfianca(texto, gestor, subtipo, agencia, dataInicio, confianca, reusImplicitos)
+  };
 }
 
 // Exporta para uso no browser e Node.js
