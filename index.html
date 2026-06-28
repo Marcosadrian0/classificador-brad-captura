@@ -166,12 +166,123 @@
   .analise-conf-Médio { color: #92400e; font-weight: 600; }
   .analise-conf-Baixo { color: #991b1b; font-weight: 600; }
 
+  /* FEEDBACK */
+  .feedback-wrap {
+    background: #fff;
+    border-top: 1.5px dashed #d1d5db;
+    padding: 20px 28px 24px;
+    margin-top: 0;
+  }
+  .feedback-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .feedback-title {
+    font-size: 11px; font-weight: 600; color: #4A545E;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .btn-feedback-toggle {
+    background: none; border: 1px solid #d1d5db;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px; font-weight: 600; color: #4A545E;
+    cursor: pointer; padding: 5px 12px; border-radius: 7px;
+    transition: all 0.15s;
+  }
+  .btn-feedback-toggle:hover { border-color: #075056; color: #075056; }
+  .feedback-form { display: none; }
+  .feedback-form.open { display: block; }
+  .feedback-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .feedback-group { display: flex; flex-direction: column; gap: 5px; }
+  .feedback-group.full { grid-column: 1 / -1; }
+  .fb-lbl { font-size: 10px; font-weight: 600; color: #023631; text-transform: uppercase; letter-spacing: 0.07em; }
+  .fb-select, .fb-input {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 300; color: #012824;
+    border: 1.5px solid #d1d5db; border-radius: 7px;
+    padding: 8px 12px; background: #fff; outline: none;
+    transition: border-color 0.15s;
+  }
+  .fb-select:focus, .fb-input:focus { border-color: #075056; }
+  .fb-textarea {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 300; color: #012824;
+    border: 1.5px solid #d1d5db; border-radius: 7px;
+    padding: 8px 12px; background: #fff; outline: none;
+    resize: vertical; min-height: 68px; width: 100%;
+    transition: border-color 0.15s;
+  }
+  .fb-textarea:focus { border-color: #075056; }
+  .feedback-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .btn-fb-save {
+    background: #023631; color: #ECEFF3; border: none;
+    padding: 9px 20px; border-radius: 7px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-fb-save:hover { background: #012824; }
+  .fb-saved-msg { font-size: 12px; font-weight: 300; color: #065f46; display: none; }
+  .fb-saved-msg.show { display: inline; }
+
+  /* HISTÓRICO */
+  .historico-wrap {
+    background: #fff;
+    border-radius: 14px;
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1.5px solid #e0e3e8;
+  }
+  .historico-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s;
+  }
+  .historico-header:hover { background: #f8f9fa; }
+  .historico-header.open { border-bottom-color: #e0e3e8; }
+  .historico-title { font-size: 11px; font-weight: 600; color: #4A545E; text-transform: uppercase; letter-spacing: 0.08em; }
+  .historico-count { font-size: 11px; font-weight: 600; color: #fff; background: #075056; padding: 2px 9px; border-radius: 99px; }
+  .historico-body { display: none; padding: 16px 20px; }
+  .historico-body.open { display: block; }
+  .historico-actions { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .btn-export {
+    background: none; border: 1px solid #075056;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px; font-weight: 600; color: #075056;
+    cursor: pointer; padding: 6px 14px; border-radius: 7px;
+    transition: all 0.15s;
+  }
+  .btn-export:hover { background: #075056; color: #fff; }
+  .btn-clear-hist {
+    background: none; border: 1px solid #dc2626;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px; font-weight: 600; color: #dc2626;
+    cursor: pointer; padding: 6px 14px; border-radius: 7px;
+    transition: all 0.15s;
+  }
+  .btn-clear-hist:hover { background: #dc2626; color: #fff; }
+  .hist-empty { font-size: 12px; font-weight: 300; color: #4A545E; padding: 8px 0; }
+  .hist-item {
+    border: 1px solid #e0e3e8; border-radius: 9px;
+    padding: 12px 16px; margin-bottom: 10px;
+    font-size: 12px; line-height: 1.7;
+  }
+  .hist-item:last-child { margin-bottom: 0; }
+  .hist-meta { font-size: 10px; font-weight: 300; color: #4A545E; margin-bottom: 6px; }
+  .hist-campo { display: inline-block; background: #fee2e2; color: #991b1b; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px; text-transform: uppercase; }
+  .hist-linha { color: #012824; font-weight: 300; }
+  .hist-linha strong { font-weight: 600; }
+  .hist-obs { color: #4A545E; font-style: italic; font-size: 11px; margin-top: 4px; }
+
   @media (max-width: 600px) {
     .fields-grid { grid-template-columns: 1fr; }
     .field.full { grid-column: 1; }
     body { padding: 16px 8px 48px; }
     .header, .body, .result-wrap { padding: 16px; }
     .analise-box { padding: 16px; }
+    .feedback-wrap { padding: 16px; }
+    .feedback-row { grid-template-columns: 1fr; }
+    .feedback-group.full { grid-column: 1; }
   }
 </style>
 </head>
@@ -216,7 +327,61 @@
     </div>
   </div>
 
-  <div class="footer">
+  <!-- FEEDBACK -->
+  <div id="feedback-wrap" class="feedback-wrap" style="display:none; border-radius:0 0 14px 14px;">
+    <div class="feedback-header">
+      <span class="feedback-title">Registrar correção</span>
+      <button class="btn-feedback-toggle" onclick="toggleFeedback()">Preencher</button>
+    </div>
+    <div id="feedback-form" class="feedback-form">
+      <div class="feedback-row">
+        <div class="feedback-group">
+          <label class="fb-lbl" for="fb-campo">Campo com erro</label>
+          <select class="fb-select" id="fb-campo">
+            <option value="">Selecione...</option>
+            <option value="gestor">Gestor principal</option>
+            <option value="agencia">Agência</option>
+            <option value="cod_tipo">COD_TIPO</option>
+            <option value="cod_subtipo">COD_SUBTIPO</option>
+            <option value="data">Data de início</option>
+            <option value="reus">Réus adicionais</option>
+            <option value="multiplos">Múltiplos campos</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="feedback-group">
+          <label class="fb-lbl" for="fb-correto">Valor correto</label>
+          <input class="fb-input" id="fb-correto" type="text" placeholder="Ex: 4840, subtipo 79, 08/2020...">
+        </div>
+        <div class="feedback-group full">
+          <label class="fb-lbl" for="fb-obs">Observação / trecho que deveria ter detectado</label>
+          <textarea class="fb-textarea" id="fb-obs" placeholder="Ex: O texto contém 'BX.ANT.FINANC/EMP' que indica empréstimo, mas o classificador usou gestor 4040..."></textarea>
+        </div>
+      </div>
+      <div class="feedback-actions">
+        <button class="btn-fb-save" onclick="salvarFeedback()">Salvar correção</button>
+        <span class="fb-saved-msg" id="fb-saved-msg">Correção salva.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO DE CORREÇÕES -->
+  <div class="historico-wrap" id="historico-wrap" style="display:none">
+    <div class="historico-header" id="historico-toggle" onclick="toggleHistorico()">
+      <span class="historico-title">Histórico de correções</span>
+      <span class="historico-count" id="historico-count">0</span>
+    </div>
+    <div class="historico-body" id="historico-body">
+      <div class="historico-actions">
+        <button class="btn-export" onclick="exportarFeedback()">Exportar JSON</button>
+        <button class="btn-export" onclick="copiarFeedback()">Copiar para área de transferência</button>
+        <button class="btn-clear-hist" onclick="limparHistorico()">Apagar histórico</button>
+      </div>
+      <div id="historico-lista"></div>
+    </div>
+  </div>
+
+  <div class="footer" style="margin-top:16px">
     <strong>SBK Legal Operations</strong> — Classificador Brad Captura v1.0 — Uso interno
   </div>
 
@@ -379,6 +544,20 @@ function executarClassificacao() {
   }
 
   el.innerHTML = html;
+
+  // Mostra painel de feedback e guarda resultado atual para referência
+  window._ultimoResultado = r;
+  window._ultimoTexto = texto;
+  document.getElementById('feedback-wrap').style.display = 'block';
+  // Fecha o form se estava aberto de classificação anterior
+  document.getElementById('feedback-form').classList.remove('open');
+  document.querySelector('.btn-feedback-toggle').textContent = 'Preencher';
+  document.getElementById('fb-saved-msg').classList.remove('show');
+  document.getElementById('fb-campo').value = '';
+  document.getElementById('fb-correto').value = '';
+  document.getElementById('fb-obs').value = '';
+
+  atualizarHistorico();
 }
 
 function limpar() {
@@ -387,7 +566,131 @@ function limpar() {
     Cole o texto da petição acima e clique em <strong>Classificar processo</strong>.<br>
     A análise é feita localmente, sem envio de dados para servidores externos.
   </div>`;
+  document.getElementById('feedback-wrap').style.display = 'none';
 }
+
+// ── FEEDBACK ──────────────────────────────────────────────────
+
+function toggleFeedback() {
+  const form = document.getElementById('feedback-form');
+  const btn = document.querySelector('.btn-feedback-toggle');
+  const open = form.classList.toggle('open');
+  btn.textContent = open ? 'Fechar' : 'Preencher';
+}
+
+function salvarFeedback() {
+  const campo = document.getElementById('fb-campo').value;
+  const correto = document.getElementById('fb-correto').value.trim();
+  const obs = document.getElementById('fb-obs').value.trim();
+
+  if (!campo) { alert('Selecione qual campo estava errado.'); return; }
+
+  const r = window._ultimoResultado || {};
+  const texto = window._ultimoTexto || '';
+
+  const entrada = {
+    timestamp: new Date().toISOString(),
+    trecho: texto.slice(0, 300).replace(/\s+/g, ' '),
+    resultadoGerado: {
+      gestor: r.gestor,
+      gestorNome: r.gestorNome,
+      agencia: r.agencia,
+      codTipo: r.codTipo,
+      codSubtipo: r.codSubtipo,
+      codSubtipoNome: r.codSubtipoNome,
+      dataInicio: r.dataInicio,
+      confianca: r.confianca?.nivel
+    },
+    campoErrado: campo,
+    valorCorreto: correto,
+    observacao: obs
+  };
+
+  const hist = JSON.parse(localStorage.getItem('brad_feedback') || '[]');
+  hist.unshift(entrada);
+  localStorage.setItem('brad_feedback', JSON.stringify(hist));
+
+  const msg = document.getElementById('fb-saved-msg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 2500);
+
+  document.getElementById('fb-campo').value = '';
+  document.getElementById('fb-correto').value = '';
+  document.getElementById('fb-obs').value = '';
+
+  atualizarHistorico();
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────────
+
+const CAMPO_LABEL = {
+  gestor: 'Gestor principal', agencia: 'Agência', cod_tipo: 'COD_TIPO',
+  cod_subtipo: 'COD_SUBTIPO', data: 'Data de início', reus: 'Réus adicionais',
+  multiplos: 'Múltiplos campos', outro: 'Outro'
+};
+
+function atualizarHistorico() {
+  const hist = JSON.parse(localStorage.getItem('brad_feedback') || '[]');
+  const wrap = document.getElementById('historico-wrap');
+  const count = document.getElementById('historico-count');
+  const lista = document.getElementById('historico-lista');
+
+  if (hist.length === 0) { wrap.style.display = 'none'; return; }
+
+  wrap.style.display = 'block';
+  count.textContent = hist.length;
+
+  lista.innerHTML = hist.map((h, i) => {
+    const dt = new Date(h.timestamp).toLocaleString('pt-BR');
+    const cl = CAMPO_LABEL[h.campoErrado] || h.campoErrado;
+    const g = h.resultadoGerado;
+    return `<div class="hist-item">
+      <div class="hist-meta">#${hist.length - i} &nbsp;—&nbsp; ${dt}</div>
+      <span class="hist-campo">${cl}</span>
+      <div class="hist-linha">
+        Gerado: <strong>${g.gestor || '—'} / ${g.codSubtipo || '—'} / ${g.confianca || '—'}</strong>
+        ${h.valorCorreto ? ` &nbsp;→&nbsp; Correto: <strong>${esc(h.valorCorreto)}</strong>` : ''}
+      </div>
+      ${h.observacao ? `<div class="hist-obs">${esc(h.observacao)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleHistorico() {
+  const body = document.getElementById('historico-body');
+  const header = document.getElementById('historico-toggle');
+  const open = body.classList.toggle('open');
+  header.classList.toggle('open', open);
+}
+
+function exportarFeedback() {
+  const hist = localStorage.getItem('brad_feedback') || '[]';
+  const blob = new Blob([hist], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `brad_feedback_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copiarFeedback() {
+  const hist = localStorage.getItem('brad_feedback') || '[]';
+  navigator.clipboard.writeText(hist).then(() => {
+    alert('Histórico copiado para a área de transferência.');
+  }).catch(() => {
+    prompt('Copie o conteúdo abaixo:', hist);
+  });
+}
+
+function limparHistorico() {
+  if (!confirm('Apagar todo o histórico de correções? Esta ação não pode ser desfeita.')) return;
+  localStorage.removeItem('brad_feedback');
+  atualizarHistorico();
+}
+
+// Carrega histórico ao iniciar
+atualizarHistorico();
 </script>
 </body>
 </html>
