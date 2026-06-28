@@ -167,14 +167,28 @@
   .analise-conf-Baixo { color: #991b1b; font-weight: 600; }
 
   /* GESTOR ALTERNATIVO */
-  .alt-gestor-box {
-    display: flex; align-items: flex-start; gap: 10px;
-    background: #fffbeb; border: 1px solid #fbbf24;
-    border-radius: 8px; padding: 10px 14px; margin-top: 8px;
-    font-size: 12px; line-height: 1.6; color: #78350f;
+  .alt-wrap {
+    grid-column: 1 / -1;
+    background: #fffbeb; border: 1.5px solid #fbbf24;
+    border-radius: 10px; padding: 14px 18px; margin-top: 4px;
   }
-  .alt-gestor-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-  .alt-gestor-label { font-weight: 600; color: #92400e; }
+  .alt-header {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; color: #92400e;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+  .alt-header-icon { font-size: 13px; }
+  .alt-motivo {
+    font-size: 12px; font-weight: 300; color: #78350f;
+    line-height: 1.6; margin-bottom: 12px;
+    padding-bottom: 10px; border-bottom: 1px solid #fde68a;
+  }
+  .alt-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .alt-field { background: #fef9ec; border-radius: 7px; padding: 9px 13px; border-left: 3px solid #f59e0b; }
+  .alt-field.full { grid-column: 1 / -1; }
+  .alt-f-lbl { font-size: 10px; font-weight: 600; color: #92400e; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+  .alt-f-val { font-size: 12px; font-weight: 600; color: #78350f; }
 
   /* FEEDBACK */
   .feedback-wrap {
@@ -293,6 +307,8 @@
     .feedback-wrap { padding: 16px; }
     .feedback-row { grid-template-columns: 1fr; }
     .feedback-group.full { grid-column: 1; }
+    .alt-fields { grid-template-columns: 1fr; }
+    .alt-field.full { grid-column: 1; }
   }
 </style>
 </head>
@@ -421,9 +437,27 @@ function executarClassificacao() {
   }
 
   const altGestorHtml = r.gestorAlternativo
-    ? `<div class="alt-gestor-box">
-        <span class="alt-gestor-icon">&#9432;</span>
-        <span><span class="alt-gestor-label">Considere também: ${esc(r.gestorAlternativo.gestor)} — ${esc(r.gestorAlternativo.gestorNome)}</span><br>${esc(r.gestorAlternativo.motivo)}</span>
+    ? `<div class="alt-wrap">
+        <div class="alt-header"><span class="alt-header-icon">&#9432;</span> Gestor alternativo a considerar</div>
+        <div class="alt-motivo">${esc(r.gestorAlternativo.motivo)}</div>
+        <div class="alt-fields">
+          <div class="alt-field full">
+            <div class="alt-f-lbl">Gestor principal (alternativo)</div>
+            <div class="alt-f-val">${esc(r.gestorAlternativo.gestor)} — ${esc(r.gestorAlternativo.gestorNome)}</div>
+          </div>
+          <div class="alt-field">
+            <div class="alt-f-lbl">Agência</div>
+            <div class="alt-f-val">${esc(r.agencia)}</div>
+          </div>
+          <div class="alt-field">
+            <div class="alt-f-lbl">COD_TIPO</div>
+            <div class="alt-f-val">${esc(r.codTipo)} — ${esc(r.codTipoNome)}</div>
+          </div>
+          <div class="alt-field full">
+            <div class="alt-f-lbl">COD_SUBTIPO (alternativo)</div>
+            <div class="alt-f-val">${esc(r.gestorAlternativo.codSubtipo)} — ${esc(r.gestorAlternativo.codSubtipoNome)}</div>
+          </div>
+        </div>
       </div>`
     : '';
 
@@ -435,7 +469,6 @@ function executarClassificacao() {
     <div class="field">
       <div class="f-lbl">Gestor principal</div>
       <div class="f-val">${esc(r.gestor)} — ${esc(r.gestorNome)}</div>
-      ${altGestorHtml}
     </div>
     <div class="field">
       <div class="f-lbl">Agência</div>
@@ -476,6 +509,8 @@ function executarClassificacao() {
       <div class="f-val light">${r.autores.map(esc).join('<br>')}</div>
     </div>`;
   }
+
+  if (altGestorHtml) html += altGestorHtml;
 
   html += `</div>`;
 

@@ -351,7 +351,7 @@ function detectarGestor(texto) {
 // ============================================================
 // SUGESTÃO DE GESTOR ALTERNATIVO
 // ============================================================
-function sugerirGestorAlternativo(texto, gestorPrincipal) {
+function sugerirGestorAlternativo(texto, gestorPrincipal, codTipo) {
   const t = texto.toLowerCase();
   const candidatos = [];
 
@@ -434,8 +434,15 @@ function sugerirGestorAlternativo(texto, gestorPrincipal) {
     });
   }
 
-  // Retorna apenas o mais relevante (primeiro da lista), se houver
-  return candidatos.length > 0 ? candidatos[0] : null;
+  // Retorna apenas o mais relevante (primeiro da lista), com subtipo calculado
+  if (candidatos.length === 0) return null;
+  const c = candidatos[0];
+  const subAlt = detectarSubtipo(texto, c.gestor, codTipo);
+  return {
+    ...c,
+    codSubtipo: subAlt?.cod,
+    codSubtipoNome: subAlt?.nome || "VERIFICAR MANUALMENTE"
+  };
 }
 
 // ============================================================
@@ -762,7 +769,7 @@ function classificar(texto) {
   const analiseDetalhada = gerarAnaliseDetalhada(texto, gestor, gestorNome, codTipo, subtipo, vara, agencia, dataInicio, reus, autores, confianca);
 
   // Gestor alternativo
-  const gestorAlternativo = sugerirGestorAlternativo(texto, gestor);
+  const gestorAlternativo = sugerirGestorAlternativo(texto, gestor, codTipo);
 
   return {
     gestor,
