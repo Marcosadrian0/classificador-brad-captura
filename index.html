@@ -334,10 +334,13 @@ function executarClassificacao() {
     if (r.reus && r.reus.length > 0) {
       for (const reu of r.reus) {
         const gestorSecNome = reu.gestor ? (GESTORES[reu.gestor] || '') : '';
+        const gestorSecLabel = reu.gestor
+          ? `${esc(reu.gestor)} — ${esc(gestorSecNome)}`
+          : 'não aplicável (empresa fora do grupo econômico Bradesco)';
         html += `<div class="analise-texto" style="margin-top:8px">Réu: <strong>${esc(reu.nome)}</strong>${reu.cnpj ? ` — CNPJ: ${esc(reu.cnpj)}` : ''}</div>
         <ul class="analise-lista">
           <li>Agência: 0</li>
-          <li>Gestor Secundário: ${reu.gestor ? `${esc(reu.gestor)} — ${esc(gestorSecNome)}` : 'não aplicável'}</li>
+          <li>Gestor Secundário: ${gestorSecLabel}</li>
           <li>Campo: ${reu.cnpj ? 'Nome do Réu + CNPJ' : 'Nome do Réu'}</li>
         </ul>`;
       }

@@ -412,6 +412,15 @@ function detectarAgencia(texto, gestor) {
 // ============================================================
 // DETECÇÃO DA DATA DE INÍCIO DOS DESCONTOS
 // ============================================================
+function validarDataStr(s) {
+  const m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (!m) return false;
+  const dia = parseInt(m[1]);
+  const mes = parseInt(m[2]);
+  const ano = parseInt(m[3].length === 2 ? '20' + m[3] : m[3]);
+  return dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12 && ano >= 1900 && ano <= 2100;
+}
+
 function detectarData(texto) {
   const padroes = [
     /(?:desde|a partir de|em|contratado em|iniciou em|data de|início em)\s+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/gi,
@@ -422,8 +431,13 @@ function detectarData(texto) {
 
   for (const padrao of padroes) {
     const matches = [...texto.matchAll(padrao)];
-    if (matches.length > 0) {
-      return matches[0][1].trim();
+    for (const match of matches) {
+      const candidato = match[1].trim();
+      if (/^\d/.test(candidato)) {
+        if (validarDataStr(candidato)) return candidato;
+      } else {
+        return candidato;
+      }
     }
   }
 
@@ -696,8 +710,14 @@ function gerarAnaliseCaso(texto, gestor, gestorNome, vara, reus) {
     return `O autor contesta empréstimo ou financiamento${temNaoReconhece ? " não reconhecido" : ""} junto ao Bradesco. A ação tramita em ${varaNome}.`;
   }
   if (gestor === 8627) {
-    const temDebito = t.includes("débito") || t.includes("debito");
-    return `O autor contesta cobrança ou transação não reconhecida em cartão de ${temDebito ? "débito" : "crédito"} Bradesco. A ação tramita em ${varaNome}.`;
+    const temPicPay = t.includes("picpay");
+    const temCancelado = t.includes("cancelad") || t.includes("estorno");
+    const temDebitoAuto = t.includes("débito automático") || t.includes("debito automatico");
+    const temDebCard = t.includes("cartão de débito") || t.includes("cartao de debito");
+    if (temPicPay && temCancelado) {
+      return `O autor realizou pagamento via PicPay com cartão de crédito Bradesco. A operação foi cancelada, mas o Bradesco manteve a cobrança na fatura${temDebitoAuto ? " e debitou via débito automático sem realizar o estorno" : ""}. O PicPay figura como réu adicional. A ação tramita em ${varaNome}.`;
+    }
+    return `O autor contesta cobrança ou transação não reconhecida em cartão de ${temDebCard ? "débito" : "crédito"} Bradesco. A ação tramita em ${varaNome}.`;
   }
   if (gestor === 4160) return `O autor relata problema no atendimento em agência Bradesco. A ação tramita em ${varaNome}.`;
   if (gestor === 4859) return `O autor foi vítima de assalto ou incidente de segurança em dependência do Bradesco. A ação tramita em ${varaNome}.`;
@@ -732,6 +752,7 @@ function gerarExplicacaoGestor(texto, gestor, gestorNome) {
   }
   if (gestor === 8627) {
     if (t.includes("não solicitado") || t.includes("nao solicitado")) return "O evento gerador é emissão de cartão de crédito não solicitado pelo autor.";
+    if (t.includes("parcela já paga") || t.includes("parcela ja paga") || t.includes("estorno não realizado") || t.includes("estorno nao realizado") || (t.includes("cancelad") && t.includes("fatura"))) return "O evento gerador é a cobrança indevida de parcela já cancelada ou paga na fatura do cartão de crédito Bradesco.";
     if (t.includes("compra não autorizada") || t.includes("compra nao autorizada")) return "O evento gerador é cobrança de compra não autorizada no cartão de crédito.";
     return "O evento gerador é cobrança ou transação não reconhecida em cartão de crédito ou débito Bradesco.";
   }
