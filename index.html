@@ -166,6 +166,16 @@
   .analise-conf-Médio { color: #92400e; font-weight: 600; }
   .analise-conf-Baixo { color: #991b1b; font-weight: 600; }
 
+  /* GESTOR ALTERNATIVO */
+  .alt-gestor-box {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: #fffbeb; border: 1px solid #fbbf24;
+    border-radius: 8px; padding: 10px 14px; margin-top: 8px;
+    font-size: 12px; line-height: 1.6; color: #78350f;
+  }
+  .alt-gestor-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .alt-gestor-label { font-weight: 600; color: #92400e; }
+
   /* FEEDBACK */
   .feedback-wrap {
     background: #fff;
@@ -410,6 +420,13 @@ function executarClassificacao() {
     return;
   }
 
+  const altGestorHtml = r.gestorAlternativo
+    ? `<div class="alt-gestor-box">
+        <span class="alt-gestor-icon">&#9432;</span>
+        <span><span class="alt-gestor-label">Considere também: ${esc(r.gestorAlternativo.gestor)} — ${esc(r.gestorAlternativo.gestorNome)}</span><br>${esc(r.gestorAlternativo.motivo)}</span>
+      </div>`
+    : '';
+
   let html = `<div class="result-top">
     <span class="result-title">Classificação gerada</span>
     <span class="conf-badge conf-${r.confianca.nivel}">${esc(r.confianca.nivel)}</span>
@@ -418,6 +435,7 @@ function executarClassificacao() {
     <div class="field">
       <div class="f-lbl">Gestor principal</div>
       <div class="f-val">${esc(r.gestor)} — ${esc(r.gestorNome)}</div>
+      ${altGestorHtml}
     </div>
     <div class="field">
       <div class="f-lbl">Agência</div>

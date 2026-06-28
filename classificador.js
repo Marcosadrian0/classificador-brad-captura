@@ -349,6 +349,96 @@ function detectarGestor(texto) {
 }
 
 // ============================================================
+// SUGESTÃO DE GESTOR ALTERNATIVO
+// ============================================================
+function sugerirGestorAlternativo(texto, gestorPrincipal) {
+  const t = texto.toLowerCase();
+  const candidatos = [];
+
+  // 4008 — Conta Corrente / PIX
+  if (gestorPrincipal !== 4008 &&
+      (t.includes("pix") || t.includes("transferência") || t.includes("transferencia") ||
+       t.includes("conta corrente") || t.includes("débito automático") || t.includes("debito automatico"))) {
+    candidatos.push({
+      gestor: 4008,
+      gestorNome: GESTORES[4008],
+      motivo: "O texto menciona movimentações em conta corrente (PIX, transferência ou débito automático), que também se enquadram no Gestor 4008."
+    });
+  }
+
+  // 4840 — Empréstimos / Financiamentos
+  if (gestorPrincipal !== 4840 &&
+      (t.includes("empréstimo") || t.includes("emprestimo") || t.includes("financiamento") ||
+       t.includes("parcela") || t.includes("consignado") || t.includes("cheque especial") ||
+       t.includes("ccb") || t.includes("bx.ant.financ") || t.includes("financ/emp"))) {
+    candidatos.push({
+      gestor: 4840,
+      gestorNome: GESTORES[4840],
+      motivo: "O texto contém referências a empréstimo, financiamento ou parcelas, que também se enquadram no Gestor 4840."
+    });
+  }
+
+  // 8627 — Cartões Bradesco
+  if (gestorPrincipal !== 8627 &&
+      (t.includes("cartão de crédito") || t.includes("cartao de credito") ||
+       t.includes("fatura") || t.includes("anuidade") ||
+       t.includes("cartão de débito") || t.includes("cartao de debito"))) {
+    candidatos.push({
+      gestor: 8627,
+      gestorNome: GESTORES[8627],
+      motivo: "O texto menciona cartão de crédito ou débito Bradesco, que também se enquadra no Gestor 8627."
+    });
+  }
+
+  // 8706 — Aplicativo / Token / Internet Banking
+  if (gestorPrincipal !== 8706 &&
+      (t.includes("aplicativo") || t.includes("internet banking") || t.includes("token")) &&
+      (t.includes("fraude") || t.includes("golpe") || t.includes("não reconhec") || t.includes("nao reconhec"))) {
+    candidatos.push({
+      gestor: 8706,
+      gestorNome: GESTORES[8706],
+      motivo: "O texto menciona acesso via aplicativo ou internet banking com indício de fraude, que também se enquadra no Gestor 8706."
+    });
+  }
+
+  // 4312 — BDN / Caixas 24h
+  if (gestorPrincipal !== 4312 &&
+      (t.includes("caixa eletrônico") || t.includes("caixa eletronico") ||
+       t.includes("caixa 24") || t.includes("saque") || t.includes("bdn"))) {
+    candidatos.push({
+      gestor: 4312,
+      gestorNome: GESTORES[4312],
+      motivo: "O texto menciona saque ou caixa eletrônico, que também pode se enquadrar no Gestor 4312 (BDN / Caixas 24h)."
+    });
+  }
+
+  // 4120 — Negativações / Dívidas cedidas
+  if (gestorPrincipal !== 4120 &&
+      (t.includes("negativação") || t.includes("negativacao") || t.includes("serasa") ||
+       t.includes("spc") || t.includes("restrição") || t.includes("restricao") ||
+       t.includes("empresa de cobranç") || t.includes("dívida cedida"))) {
+    candidatos.push({
+      gestor: 4120,
+      gestorNome: GESTORES[4120],
+      motivo: "O texto menciona negativação ou dívida cedida, que também se enquadra no Gestor 4120."
+    });
+  }
+
+  // 5310 — Seguro Vida / Previdência
+  if (gestorPrincipal !== 5310 &&
+      (t.includes("seguro de vida") || t.includes("previdência") || t.includes("previdencia"))) {
+    candidatos.push({
+      gestor: 5310,
+      gestorNome: GESTORES[5310],
+      motivo: "O texto menciona seguro de vida ou previdência não reconhecidos, que também se enquadra no Gestor 5310."
+    });
+  }
+
+  // Retorna apenas o mais relevante (primeiro da lista), se houver
+  return candidatos.length > 0 ? candidatos[0] : null;
+}
+
+// ============================================================
 // DETECÇÃO DO SUBTIPO
 // ============================================================
 function detectarSubtipo(texto, gestor, codTipo) {
@@ -671,6 +761,9 @@ function classificar(texto) {
   const gestorNome = GESTORES[gestor] || "Verificar";
   const analiseDetalhada = gerarAnaliseDetalhada(texto, gestor, gestorNome, codTipo, subtipo, vara, agencia, dataInicio, reus, autores, confianca);
 
+  // Gestor alternativo
+  const gestorAlternativo = sugerirGestorAlternativo(texto, gestor);
+
   return {
     gestor,
     gestorNome,
@@ -684,7 +777,8 @@ function classificar(texto) {
     autores,
     confianca,
     justificativa,
-    analiseDetalhada
+    analiseDetalhada,
+    gestorAlternativo
   };
 }
 
