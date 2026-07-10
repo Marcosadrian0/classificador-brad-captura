@@ -2,6 +2,9 @@
   "name": "sbk-forms",
   "version": "1.0.0",
   "description": "Sistema de formulários internos SBK Legal Operations",
+  "engines": {
+    "node": ">=18.x"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2"
