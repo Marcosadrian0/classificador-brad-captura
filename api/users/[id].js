@@ -8,11 +8,12 @@ module.exports = async (req, res) => {
     if (req.method === 'PUT') {
       requireAdmin(req);
       const { name, email, password, role } = req.body || {};
+      const username = (email || '').toLowerCase().trim();
       const file = await read('users');
       const idx = file.list.findIndex(u => u.id === id);
       if (idx === -1) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
 
-      const user = { ...file.list[idx], name: name.trim(), email: email.toLowerCase().trim(), role };
+      const user = { ...file.list[idx], name: name.trim(), username, email: username, role };
       if (password) user.password_hash = await bcrypt.hash(password, 10);
 
       file.list[idx] = user;

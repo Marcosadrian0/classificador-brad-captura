@@ -9,7 +9,8 @@ module.exports = async (req, res) => {
     if (!email || !password) return res.status(400).json({ success: false, error: 'Email e senha obrigatórios' });
 
     const { list: users } = await read('users');
-    const user = users.find(u => u.email === email.toLowerCase().trim());
+    const login = email.toLowerCase().trim();
+    const user = users.find(u => u.username === login || u.email === login);
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }

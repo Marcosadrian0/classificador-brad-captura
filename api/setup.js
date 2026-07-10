@@ -31,11 +31,14 @@ module.exports = async (req, res) => {
         existing.password_hash = hash;
         existing.name = adminName || existing.name;
         existing.role = 'admin';
+        if (!existing.username) existing.username = adminEmail.toLowerCase().split('@')[0];
         await write('users', users, usersFile.sha, `update: admin ${adminEmail}`);
       } else {
+        const adminUsername = adminEmail.toLowerCase().split('@')[0];
         users.push({
           id: randomUUID(),
           name: adminName || 'Administrador',
+          username: adminUsername,
           email: adminEmail.toLowerCase(),
           password_hash: hash,
           role: 'admin',

@@ -50,7 +50,7 @@
     <div class="card">
       <div class="table-wrap">
         <table id="users-table">
-          <thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
+          <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
           <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Carregando...</td></tr></tbody>
         </table>
       </div>
@@ -112,11 +112,11 @@
     <div id="user-modal-alert" style="display:none" class="alert alert-error"></div>
     <div class="form-group">
       <label class="form-label">Nome completo <span class="req">*</span></label>
-      <input class="form-input" id="um-name" placeholder="Nome do colaborador">
+      <input class="form-input" id="um-name" placeholder="Nome do colaborador" oninput="autoUsername()">
     </div>
     <div class="form-group">
-      <label class="form-label">Email <span class="req">*</span></label>
-      <input class="form-input" type="email" id="um-email" placeholder="email@sbk.com.br">
+      <label class="form-label">Usuário (login) <span class="req">*</span></label>
+      <input class="form-input" type="text" id="um-email" placeholder="nome.sobrenome" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">Senha <span class="req" id="um-pwd-req">*</span></label>
@@ -336,7 +336,7 @@ async function loadUsers() {
   if (!data.users?.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Nenhum usuário cadastrado.</td></tr>`; return; }
   tbody.innerHTML = data.users.map(u => `<tr>
     <td><strong>${esc(u.name)}</strong></td>
-    <td>${esc(u.email)}</td>
+    <td>${esc(u.username || u.email)}</td>
     <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
     <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
     <td style="white-space:nowrap">
@@ -350,7 +350,7 @@ function openUserModal(user=null) {
   editingUserId = user?.id || null;
   document.getElementById('user-modal-title').textContent = user ? 'Editar usuário' : 'Novo usuário';
   document.getElementById('um-name').value = user?.name || '';
-  document.getElementById('um-email').value = user?.email || '';
+  document.getElementById('um-email').value = user?.username || user?.email || '';
   document.getElementById('um-password').value = '';
   document.getElementById('um-role').value = user?.role || 'user';
   document.getElementById('user-modal-alert').style.display = 'none';
@@ -361,6 +361,12 @@ function openUserModal(user=null) {
   document.getElementById('user-modal').classList.add('open');
 }
 
+function autoUsername() {
+  if (editingUserId) return;
+  const name = document.getElementById('um-name').value.trim();
+  const parts = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/\s+/);
+  if (parts.length >= 2) document.getElementById('um-email').value = parts[0] + '.' + parts[parts.length - 1];
+}
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
 
 async function saveUser() {
@@ -371,7 +377,7 @@ async function saveUser() {
   const email = document.getElementById('um-email').value.trim();
   const password = document.getElementById('um-password').value;
   const role = document.getElementById('um-role').value;
-  if (!name||!email) { alertEl.textContent='Nome e email são obrigatórios'; alertEl.style.display='block'; return; }
+  if (!name||!email) { alertEl.textContent='Nome e usuário são obrigatórios'; alertEl.style.display='block'; return; }
   if (!editingUserId && !password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
 
   btn.textContent='Salvando...'; btn.disabled=true;
