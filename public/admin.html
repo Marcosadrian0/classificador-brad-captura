@@ -4,74 +4,528 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — SBK Forms</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; min-height: 100vh; background: #023631; display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: width .2s;
+}
+.sidebar.collapsed { width: 64px; }
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px; padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.logo-icon { display: flex; gap: 3px; flex-shrink: 0; }
+.lc { width: 8px; border-radius: 2px; }
+.lc1 { height: 18px; background: #4ade80; }
+.lc2 { height: 13px; background: rgba(255,255,255,.5); margin-top: 5px; }
+.lc3 { height: 22px; background: rgba(255,255,255,.25); }
+.logo-text { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+
+.sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+  color: rgba(255,255,255,.6); font-size: 13px; font-weight: 400; cursor: pointer;
+  transition: all .15s; text-decoration: none; white-space: nowrap; overflow: hidden;
+}
+.nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
+.nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-label { overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+.sidebar-footer {
+  padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.08);
+}
+.plan-badge {
+  background: rgba(255,255,255,.08); border-radius: 8px; padding: 10px; margin-bottom: 8px;
+  overflow: hidden; transition: opacity .15s;
+}
+.sidebar.collapsed .plan-badge { display: none; }
+.plan-label { font-size: 10px; color: rgba(255,255,255,.4); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.plan-name { font-size: 12px; font-weight: 700; color: #4ade80; margin: 2px 0; }
+.plan-valid { font-size: 10px; color: rgba(255,255,255,.4); }
+.btn-plan {
+  display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+  background: rgba(255,255,255,.08); border: none; border-radius: 7px; padding: 8px;
+  color: rgba(255,255,255,.7); font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: all .15s; margin-bottom: 8px; font-family: inherit;
+}
+.btn-plan:hover { background: rgba(255,255,255,.14); color: #fff; }
+.sidebar.collapsed .btn-plan span { display: none; }
+.btn-collapse {
+  display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none;
+  color: rgba(255,255,255,.4); font-size: 11px; font-weight: 600; cursor: pointer; padding: 4px 2px;
+  font-family: inherit; transition: color .15s;
+}
+.btn-collapse:hover { color: rgba(255,255,255,.8); }
+.sidebar.collapsed .btn-collapse span { display: none; }
+
+/* ── MAIN ── */
+.main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .2s; }
+.sidebar.collapsed ~ .main { margin-left: 64px; }
+
+.topbar {
+  height: 60px; background: #fff; border-bottom: 1px solid #e8eaed;
+  display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50;
+}
+.topbar-hamburger { background: none; border: none; cursor: pointer; color: #4A545E; font-size: 18px; padding: 4px; }
+.topbar-spacer { flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.notif-btn {
+  position: relative; background: #f4f6f9; border: none; border-radius: 8px; width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; color: #4A545E; font-size: 16px;
+}
+.notif-dot {
+  position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: #2eb67d;
+  border-radius: 50%; border: 2px solid #fff;
+}
+.user-btn {
+  display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer;
+  padding: 4px 8px; border-radius: 8px; transition: background .15s;
+}
+.user-btn:hover { background: #f4f6f9; }
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: #023631; display: flex; align-items: center;
+  justify-content: center; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.user-info { text-align: left; }
+.user-name { font-size: 13px; font-weight: 600; color: #1a2332; line-height: 1.2; }
+.user-role { font-size: 11px; color: #4A545E; font-weight: 400; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: flex; flex: 1; }
+
+/* ── DASHBOARD ── */
+#panel-dashboard { gap: 0; }
+.dash-main { flex: 1; padding: 28px 24px; overflow-y: auto; min-width: 0; }
+.dash-right { width: 300px; min-width: 300px; background: #fff; border-left: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
+
+.page-greeting { font-size: 22px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: #4A545E; font-weight: 300; margin-bottom: 24px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e8eaed;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.stat-card-top { display: flex; align-items: center; justify-content: space-between; }
+.stat-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.stat-icon.green { background: #dcfce7; }
+.stat-icon.blue { background: #dbeafe; }
+.stat-icon.purple { background: #ede9fe; }
+.stat-icon.orange { background: #ffedd5; }
+.stat-label { font-size: 12px; color: #4A545E; font-weight: 400; }
+.stat-value { font-size: 26px; font-weight: 700; color: #1a2332; line-height: 1; }
+.stat-sub { font-size: 11px; color: #4A545E; font-weight: 300; }
+.stat-sub.green { color: #16a34a; font-weight: 600; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-title { font-size: 14px; font-weight: 700; color: #1a2332; }
+
+.filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-select {
+  height: 38px; padding: 0 32px 0 12px; border: 1px solid #e8eaed; border-radius: 8px; background: #fff;
+  font-size: 12px; font-weight: 400; color: #1a2332; cursor: pointer; font-family: inherit;
+  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A545E' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.search-wrap { flex: 1; min-width: 180px; position: relative; }
+.search-wrap input {
+  width: 100%; height: 38px; padding: 0 12px 0 36px; border: 1px solid #e8eaed; border-radius: 8px;
+  background: #fff; font-size: 12px; color: #1a2332; font-family: inherit; outline: none;
+}
+.search-wrap input:focus { border-color: #023631; }
+.search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; pointer-events: none; opacity: .5; }
+.btn-new {
+  height: 38px; padding: 0 18px; background: #023631; color: #fff; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  font-family: inherit; transition: background .15s; white-space: nowrap;
+}
+.btn-new:hover { background: #075056; }
+
+/* Form rows */
+.forms-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; overflow: hidden; }
+.form-row-item {
+  display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+  border-bottom: 1px solid #f4f6f9; transition: background .1s;
+}
+.form-row-item:last-child { border-bottom: none; }
+.form-row-item:hover { background: #fafbfc; }
+.form-row-icon {
+  width: 40px; height: 40px; border-radius: 10px; background: #dcfce7;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.form-row-info { flex: 1; min-width: 0; }
+.form-row-title { font-size: 13px; font-weight: 600; color: #1a2332; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.form-row-desc { font-size: 11px; color: #4A545E; font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.form-row-meta { display: flex; align-items: center; gap: 14px; margin-top: 6px; flex-wrap: wrap; }
+.meta-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4A545E; }
+.badge-status {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 99px;
+}
+.badge-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+.badge-ativo { color: #16a34a; background: #dcfce7; }
+.badge-ativo::before { background: #16a34a; }
+.badge-rascunho { color: #4A545E; background: #f4f6f9; }
+.badge-rascunho::before { background: #9ca3af; }
+.badge-inativo { color: #6b7280; background: #f3f4f6; }
+.badge-inativo::before { background: #d1d5db; }
+
+.form-row-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.btn-action {
+  height: 32px; padding: 0 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all .15s; border: 1px solid #e8eaed;
+  display: flex; align-items: center; gap: 5px; background: #fff; color: #1a2332;
+}
+.btn-action:hover { background: #f4f6f9; }
+.btn-action.primary { background: #023631; color: #fff; border-color: #023631; }
+.btn-action.primary:hover { background: #075056; }
+.btn-action.danger { color: #dc2626; border-color: #fecaca; }
+.btn-action.danger:hover { background: #fef2f2; }
+.btn-dots { background: none; border: none; cursor: pointer; color: #4A545E; font-size: 18px; padding: 4px 6px; border-radius: 6px; }
+.btn-dots:hover { background: #f4f6f9; }
+
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 16px; }
+.page-btn {
+  width: 32px; height: 32px; border-radius: 7px; border: 1px solid #e8eaed; background: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #4A545E; font-family: inherit; transition: all .15s;
+}
+.page-btn:hover { border-color: #023631; color: #023631; }
+.page-btn.active { background: #023631; color: #fff; border-color: #023631; }
+.page-btn:disabled { opacity: .4; cursor: default; }
+
+/* RIGHT PANEL */
+.right-section-title { font-size: 13px; font-weight: 700; color: #1a2332; margin-bottom: 12px; }
+.right-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.right-link { font-size: 11px; color: #023631; font-weight: 600; text-decoration: none; cursor: pointer; }
+.right-link:hover { text-decoration: underline; }
+
+.activity-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.activity-item { display: flex; gap: 10px; align-items: flex-start; }
+.activity-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.activity-icon.form { background: #dcfce7; }
+.activity-icon.user { background: #dbeafe; }
+.activity-icon.resp { background: #ede9fe; }
+.activity-text { font-size: 11px; color: #1a2332; line-height: 1.4; }
+.activity-text strong { font-weight: 600; }
+.activity-time { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+
+.chart-section { margin-bottom: 24px; }
+.chart-wrap { background: #f8fafc; border-radius: 10px; padding: 14px; }
+
+.donut-wrap { display: flex; align-items: center; gap: 16px; }
+.donut-legend { display: flex; flex-direction: column; gap: 7px; }
+.donut-leg-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #4A545E; }
+.donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── INNER PANELS (Forms/Users/Responses tabs) ── */
+.inner-panel { flex: 1; padding: 28px 24px; overflow-y: auto; }
+.inner-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.inner-title { font-size: 20px; font-weight: 700; color: #1a2332; }
+.inner-sub { font-size: 13px; color: #4A545E; font-weight: 300; margin-top: 3px; }
+
+/* Table */
+.table-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; overflow: hidden; }
+.table-card table { width: 100%; border-collapse: collapse; }
+.table-card th { font-size: 11px; font-weight: 700; color: #4A545E; text-transform: uppercase; letter-spacing: .06em; padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid #e8eaed; text-align: left; }
+.table-card td { font-size: 13px; padding: 14px 20px; border-bottom: 1px solid #f4f6f9; color: #1a2332; }
+.table-card tr:last-child td { border-bottom: none; }
+.table-card tr:hover td { background: #fafbfc; }
+.table-wrap { overflow-x: auto; }
+
+/* Empty */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #9ca3af; text-align: center; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 13px; }
+
+/* Alert */
+.alert { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.alert-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1000;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.modal-title { font-size: 16px; font-weight: 700; color: #1a2332; margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f4f6f9; }
+
+/* Form fields */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 600; color: #1a2332; margin-bottom: 6px; display: block; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; padding: 9px 12px; border: 1.5px solid #e8eaed; border-radius: 8px;
+  font-size: 13px; font-family: inherit; color: #1a2332; background: #fff; transition: border-color .15s; outline: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: #023631; }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.req { color: #dc2626; }
+
+/* Field builder */
+.field-item { background: #f8fafc; border: 1px solid #e8eaed; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.field-item-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.field-options-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.field-option-row { display: flex; align-items: center; gap: 8px; }
+.btn-secondary { height: 34px; padding: 0 14px; background: #f4f6f9; border: 1px solid #e8eaed; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; color: #1a2332; transition: all .15s; }
+.btn-secondary:hover { background: #e8eaed; }
+.btn-primary { height: 34px; padding: 0 18px; background: #023631; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+.btn-primary:hover { background: #075056; }
+.btn-danger { height: 34px; padding: 0 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; color: #dc2626; transition: all .15s; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-icon { width: 28px; height: 28px; padding: 0; border-radius: 6px; }
+.btn-sm { height: 28px; font-size: 11px; padding: 0 10px; }
+
+/* Assign users */
+.assign-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.assign-chip { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 400; color: #1a2332; cursor: pointer; background: #f4f6f9; border: 1px solid #e8eaed; border-radius: 7px; padding: 6px 10px; }
+.assign-chip input { accent-color: #023631; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+.badge-green { background: #dcfce7; color: #16a34a; }
+.badge-yellow { background: #fef9c3; color: #854d0e; }
+.badge-gray { background: #f4f6f9; color: #4A545E; }
+
+/* Responses select */
+.resp-select-card { background: #fff; border-radius: 12px; border: 1px solid #e8eaed; padding: 20px; margin-bottom: 16px; }
+
+/* Dropdown menu */
+.dropdown { position: relative; }
+.dropdown-menu {
+  position: absolute; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #e8eaed;
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-width: 160px; z-index: 200; display: none;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 12px; color: #1a2332; cursor: pointer; transition: background .1s; }
+.dropdown-item:hover { background: #f4f6f9; }
+.dropdown-item.danger { color: #dc2626; }
+.dropdown-item:first-child { border-radius: 9px 9px 0 0; }
+.dropdown-item:last-child { border-radius: 0 0 9px 9px; }
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .dash-right { display: none; }
+}
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+}
+</style>
 </head>
 <body>
-<nav class="topbar">
-  <div class="topbar-logo">
-    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
-  </div>
-  <span class="topbar-name">SBK Forms</span>
-  <div style="margin-left:8px"><span class="badge badge-yellow" style="font-size:9px">Admin</span></div>
-  <div class="topbar-right">
-    <span class="topbar-user">Olá, <strong id="user-name">...</strong></span>
-    <button class="btn-logout" onclick="logout()">Sair</button>
-  </div>
-</nav>
 
-<div class="page">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-    <div>
-      <div class="page-title">Painel administrativo</div>
-      <div class="page-sub" style="margin:0">Gerencie formulários, usuários e visualize respostas.</div>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
     </div>
+    <span class="logo-text">SBK Forms</span>
   </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('forms')">Formulários</button>
-    <button class="tab-btn" onclick="switchTab('users')">Usuários</button>
-    <button class="tab-btn" onclick="switchTab('responses')">Respostas</button>
-  </div>
-
-  <!-- FORMULÁRIOS -->
-  <div id="tab-forms" class="tab-panel active">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-      <button class="btn btn-primary" onclick="openFormModal()">+ Novo formulário</button>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-panel="dashboard" onclick="navTo('dashboard')">
+      <span class="nav-icon">&#9783;</span><span class="nav-label">Painel</span>
+    </a>
+    <a class="nav-item" data-panel="forms" onclick="navTo('forms')">
+      <span class="nav-icon">&#128203;</span><span class="nav-label">Formulários</span>
+    </a>
+    <a class="nav-item" data-panel="responses" onclick="navTo('responses')">
+      <span class="nav-icon">&#128202;</span><span class="nav-label">Respostas</span>
+    </a>
+    <a class="nav-item" data-panel="users" onclick="navTo('users')">
+      <span class="nav-icon">&#128101;</span><span class="nav-label">Usuários</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="plan-badge">
+      <div class="plan-label">Plano atual</div>
+      <div class="plan-name">Professional</div>
+      <div class="plan-valid">Válido até 10/08/2026</div>
     </div>
-    <div id="forms-list"><div class="empty-state"><p>Carregando...</p></div></div>
+    <button class="btn-plan"><span>&#9881; Gerenciar plano</span></button>
+    <button class="btn-collapse" onclick="toggleSidebar()">
+      <span style="font-size:16px">&#8592;</span><span>Recolher menu</span>
+    </button>
   </div>
+</aside>
 
-  <!-- USUÁRIOS -->
-  <div id="tab-users" class="tab-panel">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-      <button class="btn btn-primary" onclick="openUserModal()">+ Novo usuário</button>
-    </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table id="users-table">
-          <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
-          <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Carregando...</td></tr></tbody>
-        </table>
+<!-- MAIN -->
+<div class="main" id="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="topbar-hamburger" onclick="toggleSidebar()">&#9776;</button>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-actions">
+      <button class="notif-btn"><span>&#128276;</span><span class="notif-dot"></span></button>
+      <div class="dropdown">
+        <button class="user-btn" onclick="toggleDropdown(this)">
+          <div class="user-avatar" id="user-initials">M</div>
+          <div class="user-info">
+            <div class="user-name" id="topbar-name">...</div>
+            <div class="user-role">Administrador</div>
+          </div>
+          <span style="color:#9ca3af;font-size:12px;margin-left:4px">&#9660;</span>
+        </button>
+        <div class="dropdown-menu" id="user-dropdown">
+          <div class="dropdown-item danger" onclick="logout()">&#128274; Sair</div>
+        </div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- RESPOSTAS -->
-  <div id="tab-responses" class="tab-panel">
-    <div class="card" style="margin-bottom:16px">
-      <div class="form-group" style="margin:0">
-        <label class="form-label">Selecionar formulário</label>
-        <select class="form-select" id="resp-form-select" onchange="loadResponses()">
-          <option value="">Escolha um formulário...</option>
+  <!-- PANEL: DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="dash-main">
+      <div class="page-greeting">Olá, <span id="dash-name">...</span>!</div>
+      <div class="page-sub">Gerencie formulários, usuários e acompanhe as respostas.</div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-icon green">&#128203;</div></div><div class="stat-label">Formulários</div><div class="stat-value" id="s-forms">—</div><div class="stat-sub" id="s-forms-sub">carregando</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-icon blue">&#128196;</div></div><div class="stat-label">Respostas</div><div class="stat-value" id="s-resp">—</div><div class="stat-sub" id="s-resp-sub">carregando</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-icon purple">&#128101;</div></div><div class="stat-label">Usuários</div><div class="stat-value" id="s-users">—</div><div class="stat-sub" id="s-users-sub">carregando</div></div>
+        <div class="stat-card"><div class="stat-card-top"><div class="stat-icon orange">&#9203;</div></div><div class="stat-label">Pendentes</div><div class="stat-value" id="s-pend">—</div><div class="stat-sub">Aguardando ação</div></div>
+      </div>
+
+      <div class="filter-bar">
+        <select class="filter-select" id="dash-status-filter" onchange="renderFormsList()">
+          <option value="">Todos os status</option>
+          <option value="active">Ativo</option>
+          <option value="draft">Rascunho</option>
+          <option value="inactive">Inativo</option>
         </select>
+        <div class="search-wrap">
+          <input type="text" id="dash-search" placeholder="Buscar formulário..." oninput="renderFormsList()">
+        </div>
+        <button class="btn-new" onclick="openFormModal()">+ Novo formulário</button>
+      </div>
+
+      <div id="dash-forms-list"><div class="empty-state"><div class="empty-icon">&#128203;</div><p>Carregando...</p></div></div>
+      <div class="pagination" id="dash-pagination"></div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="dash-right">
+      <div class="chart-section">
+        <div class="right-section-header">
+          <div class="right-section-title">Atividade recente</div>
+          <a class="right-link" onclick="navTo('responses')">Ver todas</a>
+        </div>
+        <div class="activity-list" id="activity-list">
+          <div style="font-size:12px;color:#9ca3af">Carregando...</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="right-section-title">Respostas nos últimos 7 dias</div>
+        <div class="chart-wrap">
+          <svg id="line-chart" width="100%" height="100" viewBox="0 0 260 100" style="display:block"></svg>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="right-section-title">Status dos formulários</div>
+        <div class="donut-wrap">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="30" fill="none" stroke="#e8eaed" stroke-width="12"/>
+            <circle id="donut-active" cx="40" cy="40" r="30" fill="none" stroke="#4ade80" stroke-width="12"
+              stroke-dasharray="0 188.5" stroke-dashoffset="47" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .4s"/>
+            <circle id="donut-draft" cx="40" cy="40" r="30" fill="none" stroke="#93c5fd" stroke-width="12"
+              stroke-dasharray="0 188.5" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .4s"/>
+            <circle id="donut-inactive" cx="40" cy="40" r="30" fill="none" stroke="#fbbf24" stroke-width="12"
+              stroke-dasharray="0 188.5" transform="rotate(-90 40 40)" style="transition:stroke-dasharray .4s"/>
+          </svg>
+          <div class="donut-legend" id="donut-legend">
+            <div class="donut-leg-item"><div class="donut-dot" style="background:#4ade80"></div><span id="leg-active">Ativos —</span></div>
+            <div class="donut-leg-item"><div class="donut-dot" style="background:#93c5fd"></div><span id="leg-draft">Rascunhos —</span></div>
+            <div class="donut-leg-item"><div class="donut-dot" style="background:#fbbf24"></div><span id="leg-inactive">Inativos —</span></div>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="responses-area"><div class="empty-state"><div class="empty-state-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div></div>
   </div>
-</div>
 
-<!-- MODAL: NOVO / EDITAR FORMULÁRIO -->
+  <!-- PANEL: FORMS -->
+  <div class="panel" id="panel-forms">
+    <div class="inner-panel">
+      <div class="inner-header">
+        <div>
+          <div class="inner-title">Formulários</div>
+          <div class="inner-sub">Crie e gerencie seus formulários.</div>
+        </div>
+        <button class="btn-new" onclick="openFormModal()">+ Novo formulário</button>
+      </div>
+      <div id="forms-full-list"><div class="empty-state"><div class="empty-icon">&#128203;</div><p>Carregando...</p></div></div>
+    </div>
+  </div>
+
+  <!-- PANEL: USERS -->
+  <div class="panel" id="panel-users">
+    <div class="inner-panel">
+      <div class="inner-header">
+        <div>
+          <div class="inner-title">Usuários</div>
+          <div class="inner-sub">Gerencie os colaboradores que acessam o sistema.</div>
+        </div>
+        <button class="btn-new" onclick="openUserModal()">+ Novo usuário</button>
+      </div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
+            <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: RESPONSES -->
+  <div class="panel" id="panel-responses">
+    <div class="inner-panel">
+      <div class="inner-header">
+        <div>
+          <div class="inner-title">Respostas</div>
+          <div class="inner-sub">Visualize e exporte as respostas dos formulários.</div>
+        </div>
+      </div>
+      <div class="resp-select-card">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Selecionar formulário</label>
+          <select class="form-select" id="resp-form-select" onchange="loadResponses()">
+            <option value="">Escolha um formulário...</option>
+          </select>
+        </div>
+      </div>
+      <div id="responses-area">
+        <div class="empty-state"><div class="empty-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- MODAL: FORMULÁRIO -->
 <div class="modal-overlay" id="form-modal">
   <div class="modal" style="max-width:720px">
     <div class="modal-title" id="form-modal-title">Novo formulário</div>
@@ -86,26 +540,23 @@
         <textarea class="form-textarea" id="fm-desc" placeholder="Instruções ou contexto para os usuários..."></textarea>
       </div>
     </div>
-
     <div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:600;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Campos do formulário</div>
+      <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Campos do formulário</div>
       <div id="fields-list"></div>
-      <button class="btn btn-secondary btn-sm" onclick="addField()" style="margin-top:8px">+ Adicionar campo</button>
+      <button class="btn-secondary btn-sm" onclick="addField()" style="margin-top:8px">+ Adicionar campo</button>
     </div>
-
     <div>
-      <div style="font-size:11px;font-weight:600;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Atribuir para usuários</div>
-      <div id="assign-users" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Atribuir para usuários</div>
+      <div class="assign-grid" id="assign-users"></div>
     </div>
-
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeFormModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveForm()" id="form-save-btn">Salvar formulário</button>
+      <button class="btn-secondary" onclick="closeFormModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveForm()" id="form-save-btn">Salvar formulário</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: NOVO / EDITAR USUÁRIO -->
+<!-- MODAL: USUÁRIO -->
 <div class="modal-overlay" id="user-modal">
   <div class="modal">
     <div class="modal-title" id="user-modal-title">Novo usuário</div>
@@ -131,8 +582,8 @@
       </select>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeUserModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveUser()" id="user-save-btn">Salvar</button>
+      <button class="btn-secondary" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveUser()" id="user-save-btn">Salvar</button>
     </div>
   </div>
 </div>
@@ -142,7 +593,11 @@ const token = localStorage.getItem('sbk_token');
 const me = JSON.parse(localStorage.getItem('sbk_user') || 'null');
 if (!token || !me) window.location.href = '/';
 if (me?.role !== 'admin') window.location.href = '/dashboard';
-document.getElementById('user-name').textContent = me?.name || '';
+
+const firstName = (me?.name || '').split(' ')[0];
+document.getElementById('topbar-name').textContent = me?.name || '';
+document.getElementById('dash-name').textContent = firstName;
+document.getElementById('user-initials').textContent = (me?.name || 'A').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
 
 function logout() { localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user'); window.location.href = '/'; }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -150,47 +605,274 @@ function api(path, opts={}) {
   return fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+token, ...(opts.headers||{}) } }).then(r=>r.json());
 }
 
-// ── TABS ────────────────────────────────────────────────────
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['forms','users','responses'][i] === name));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  if (name === 'forms') loadForms();
+// ── SIDEBAR ──────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sb = document.getElementById('sidebar');
+  const btn = sb.querySelector('.btn-collapse');
+  if (sb.classList.contains('collapsed')) {
+    btn.innerHTML = '<span style="font-size:16px">&#8594;</span><span></span>';
+  } else {
+    btn.innerHTML = '<span style="font-size:16px">&#8592;</span><span>Recolher menu</span>';
+  }
+}
+
+function toggleDropdown(btn) {
+  const menu = document.getElementById('user-dropdown');
+  menu.classList.toggle('open');
+  document.addEventListener('click', function handler(e) {
+    if (!btn.contains(e.target)) { menu.classList.remove('open'); document.removeEventListener('click', handler); }
+  }, { once: false });
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────
+let currentPanel = 'dashboard';
+function navTo(name) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.panel === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  currentPanel = name;
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'forms') loadFormsPanel();
   if (name === 'users') loadUsers();
   if (name === 'responses') loadResponsesFormList();
 }
 
-// ── FORMS LIST ──────────────────────────────────────────────
-let allForms = [];
-async function loadForms() {
-  const data = await api('/api/forms');
-  allForms = data.forms || [];
-  const el = document.getElementById('forms-list');
-  if (!allForms.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Nenhum formulário criado ainda.<br>Clique em "Novo formulário" para começar.</p></div>`;
-    return;
-  }
-  el.innerHTML = `<div class="card"><div class="table-wrap"><table>
-    <thead><tr><th>Título</th><th>Status</th><th>Atribuídos</th><th>Respostas</th><th>Criado em</th><th></th></tr></thead>
-    <tbody>${allForms.map(f => `<tr>
-      <td><strong>${esc(f.title)}</strong>${f.description?`<div style="font-size:11px;color:#4A545E;margin-top:2px">${esc(f.description)}</div>`:''}</td>
-      <td>${f.is_active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>'}</td>
-      <td>${f.assigned_count}</td>
-      <td>${f.response_count}</td>
-      <td style="white-space:nowrap">${new Date(f.created_at).toLocaleDateString('pt-BR')}</td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-secondary btn-sm" onclick="editForm('${f.id}')">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteForm('${f.id}','${esc(f.title)}')" style="margin-left:4px">Excluir</button>
-      </td>
-    </tr>`).join('')}</tbody>
-  </table></div></div>`;
+// ── DATA CACHE ───────────────────────────────────────────────
+let allForms = [], allUsers = [], allResponses = [];
+const PAGE_SIZE = 5;
+let dashPage = 1;
+
+async function loadAll() {
+  const [fd, ud] = await Promise.all([api('/api/forms'), api('/api/users')]);
+  allForms = fd.forms || [];
+  allUsers = ud.users || [];
+  return { forms: allForms, users: allUsers, responses: allResponses };
 }
 
-// ── FORM MODAL ──────────────────────────────────────────────
-let editingFormId = null;
-let fieldCount = 0;
+// ── DASHBOARD ────────────────────────────────────────────────
+async function loadDashboard() {
+  const { forms, users, responses } = await loadAll();
 
-function openFormModal(formData=null) {
+  // stats
+  const activeForms = forms.filter(f => f.is_active);
+  const totalResp = forms.reduce((s, f) => s + (f.response_count||0), 0);
+  const weekAgo = new Date(Date.now() - 7*24*3600*1000);
+  const usersThisWeek = users.filter(u => new Date(u.created_at) > weekAgo);
+
+  // pending: assigned_count - response_count across active forms
+  let pending = 0;
+  forms.forEach(f => { if (f.is_active) pending += Math.max(0, (f.assigned_count||0) - (f.response_count||0)); });
+
+  document.getElementById('s-forms').textContent = forms.length;
+  document.getElementById('s-forms-sub').textContent = `${activeForms.length} ativos`;
+  document.getElementById('s-resp').textContent = totalResp;
+  document.getElementById('s-resp-sub').textContent = 'total de respostas';
+  document.getElementById('s-users').textContent = users.length;
+  document.getElementById('s-users-sub').textContent = usersThisWeek.length > 0 ? `${usersThisWeek.length} novo${usersThisWeek.length>1?'s':''}` : '';
+  document.getElementById('s-pend').textContent = pending;
+
+  renderFormsList();
+  renderActivity(forms, [], users);
+  renderLineChart([]);
+  renderDonut(forms);
+}
+
+function renderFormsList() {
+  const statusFilter = document.getElementById('dash-status-filter')?.value || '';
+  const search = (document.getElementById('dash-search')?.value || '').toLowerCase();
+  let filtered = allForms.filter(f => {
+    const matchStatus = !statusFilter || (statusFilter === 'active' && f.is_active) || (statusFilter === 'draft' && f.is_draft) || (statusFilter === 'inactive' && !f.is_active && !f.is_draft);
+    const matchSearch = !search || f.title.toLowerCase().includes(search) || (f.description||'').toLowerCase().includes(search);
+    return matchStatus && matchSearch;
+  });
+
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  if (dashPage > totalPages) dashPage = 1;
+  const paged = filtered.slice((dashPage-1)*PAGE_SIZE, dashPage*PAGE_SIZE);
+
+  const el = document.getElementById('dash-forms-list');
+  if (!paged.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128203;</div><p>Nenhum formulário encontrado.</p></div>`;
+    document.getElementById('dash-pagination').innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = `<div class="forms-card">${paged.map(f => {
+    const statusClass = f.is_active ? 'badge-ativo' : (f.is_draft ? 'badge-rascunho' : 'badge-inativo');
+    const statusLabel = f.is_active ? 'Ativo' : (f.is_draft ? 'Rascunho' : 'Inativo');
+    const date = new Date(f.created_at).toLocaleDateString('pt-BR');
+    return `<div class="form-row-item">
+      <div class="form-row-icon">&#128203;</div>
+      <div class="form-row-info">
+        <div class="form-row-title">${esc(f.title)}</div>
+        ${f.description ? `<div class="form-row-desc">${esc(f.description)}</div>` : ''}
+        <div class="form-row-meta">
+          <span class="badge-status ${statusClass}">${statusLabel}</span>
+          <span class="meta-item">&#128100; ${f.assigned_count} atribuído${f.assigned_count!==1?'s':''}</span>
+          <span class="meta-item">&#8801; ${f.response_count} resposta${f.response_count!==1?'s':''}</span>
+          <span class="meta-item">&#128197; ${date}</span>
+        </div>
+      </div>
+      <div class="form-row-actions">
+        <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
+        <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
+        <div class="dropdown" style="position:relative">
+          <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item danger" onclick="deleteForm('${f.id}','${esc(f.title).replace(/'/g,"\\'")}')">&#128465; Excluir</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+
+  // pagination
+  const pag = document.getElementById('dash-pagination');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+  let btns = `<button class="page-btn" onclick="dashGoPage(${dashPage-1})" ${dashPage===1?'disabled':''}>&#8592;</button>`;
+  for (let i=1;i<=totalPages;i++) btns += `<button class="page-btn ${i===dashPage?'active':''}" onclick="dashGoPage(${i})">${i}</button>`;
+  btns += `<button class="page-btn" onclick="dashGoPage(${dashPage+1})" ${dashPage===totalPages?'disabled':''}>&#8594;</button>`;
+  pag.innerHTML = btns;
+}
+
+function dashGoPage(p) { dashPage = p; renderFormsList(); }
+
+function toggleCtxMenu(btn) {
+  const menu = btn.nextElementSibling;
+  document.querySelectorAll('.dropdown-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+  menu.classList.toggle('open');
+  document.addEventListener('click', function h(e) { if (!btn.contains(e.target)) { menu.classList.remove('open'); document.removeEventListener('click', h); }}, { once: false });
+}
+
+function viewForm(id) { window.open(`/form?id=${id}`, '_blank'); }
+
+function renderActivity(forms, responses, users) {
+  const items = [];
+  const sorted = [...responses].sort((a,b) => new Date(b.submitted_at)-new Date(a.submitted_at)).slice(0,3);
+  sorted.forEach(r => {
+    const u = users.find(u => u.id === r.user_id);
+    const f = forms.find(f => f.id === r.form_id);
+    if (u && f) items.push({ icon: 'resp', emoji: '&#128196;', text: `<strong>${esc(u.name)}</strong> respondeu <strong>${esc(f.title)}</strong>`, time: timeAgo(r.submitted_at) });
+  });
+  const recentForms = [...forms].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,2);
+  recentForms.forEach(f => items.push({ icon: 'form', emoji: '&#128203;', text: `Formulário <strong>${esc(f.title)}</strong> editado`, time: timeAgo(f.created_at) }));
+  const recentUsers = [...users].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,1);
+  recentUsers.forEach(u => items.push({ icon: 'user', emoji: '&#128100;', text: `Novo usuário cadastrado: <strong>${esc(u.name)}</strong>`, time: timeAgo(u.created_at) }));
+
+  const final = items.slice(0,5);
+  document.getElementById('activity-list').innerHTML = final.length ? final.map(i => `
+    <div class="activity-item">
+      <div class="activity-icon ${i.icon}">${i.emoji}</div>
+      <div><div class="activity-text">${i.text}</div><div class="activity-time">${i.time}</div></div>
+    </div>`).join('') : '<div style="font-size:12px;color:#9ca3af">Nenhuma atividade recente.</div>';
+}
+
+function timeAgo(dateStr) {
+  const diff = (new Date() - new Date(dateStr)) / 1000;
+  if (diff < 60) return 'agora mesmo';
+  if (diff < 3600) return `há ${Math.floor(diff/60)} min`;
+  if (diff < 86400) return `há ${Math.floor(diff/3600)} hora${Math.floor(diff/3600)>1?'s':''}`;
+  return `há ${Math.floor(diff/86400)} dia${Math.floor(diff/86400)>1?'s':''}`;
+}
+
+function renderLineChart(responses) {
+  const days = 7;
+  const counts = Array(days).fill(0);
+  const labels = [];
+  const now = new Date(); now.setHours(0,0,0,0);
+  for (let i=days-1;i>=0;i--) {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    labels.push(d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+    responses.forEach(r => {
+      const rd = new Date(r.submitted_at); rd.setHours(0,0,0,0);
+      if (rd.getTime()===d.getTime()) counts[days-1-i]++;
+    });
+  }
+  const max = Math.max(...counts, 1);
+  const W=260, H=80, pad=10;
+  const pts = counts.map((c,i) => {
+    const x = pad + (i/(days-1))*(W-2*pad);
+    const y = H - pad - (c/max)*(H-2*pad);
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?'M':'L')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area = path + ` L${pts[pts.length-1][0].toFixed(1)} ${H} L${pts[0][0].toFixed(1)} ${H} Z`;
+  const svg = document.getElementById('line-chart');
+  svg.innerHTML = `
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4ade80" stop-opacity=".3"/><stop offset="100%" stop-color="#4ade80" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#lg)"/>
+    <path d="${path}" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#4ade80"/>`).join('')}
+    ${labels.map((l,i)=>`<text x="${pts[i][0].toFixed(1)}" y="${H+2}" font-size="8" fill="#9ca3af" text-anchor="middle" font-family="Plus Jakarta Sans,sans-serif">${l}</text>`).join('')}`;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H+12}`);
+  svg.setAttribute('height', H+16);
+}
+
+function renderDonut(forms) {
+  const active = forms.filter(f=>f.is_active).length;
+  const draft = forms.filter(f=>!f.is_active&&f.is_draft).length;
+  const inactive = forms.filter(f=>!f.is_active&&!f.is_draft).length;
+  const total = forms.length || 1;
+  const circ = 2*Math.PI*30;
+  let offset = 0;
+  function seg(id, count, color) {
+    const len = (count/total)*circ;
+    const el = document.getElementById(id);
+    el.setAttribute('stroke-dasharray', `${len.toFixed(2)} ${(circ-len).toFixed(2)}`);
+    el.setAttribute('stroke-dashoffset', (-offset+47).toFixed(2));
+    el.setAttribute('stroke', color);
+    offset += len;
+  }
+  seg('donut-active', active, '#4ade80');
+  seg('donut-draft', draft, '#93c5fd');
+  seg('donut-inactive', inactive, '#fbbf24');
+  const pct = n => total ? `${Math.round(n/total*100)}%` : '0%';
+  document.getElementById('leg-active').textContent = `Ativos ${active} (${pct(active)})`;
+  document.getElementById('leg-draft').textContent = `Rascunhos ${draft} (${pct(draft)})`;
+  document.getElementById('leg-inactive').textContent = `Inativos ${inactive} (${pct(inactive)})`;
+}
+
+// ── FORMS PANEL ──────────────────────────────────────────────
+async function loadFormsPanel() {
+  if (!allForms.length) await loadAll();
+  const el = document.getElementById('forms-full-list');
+  if (!allForms.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128203;</div><p>Nenhum formulário criado ainda.</p></div>`; return; }
+  el.innerHTML = `<div class="forms-card">${allForms.map(f => {
+    const statusClass = f.is_active ? 'badge-ativo' : (f.is_draft ? 'badge-rascunho' : 'badge-inativo');
+    const statusLabel = f.is_active ? 'Ativo' : (f.is_draft ? 'Rascunho' : 'Inativo');
+    const date = new Date(f.created_at).toLocaleDateString('pt-BR');
+    return `<div class="form-row-item">
+      <div class="form-row-icon">&#128203;</div>
+      <div class="form-row-info">
+        <div class="form-row-title">${esc(f.title)}</div>
+        ${f.description ? `<div class="form-row-desc">${esc(f.description)}</div>` : ''}
+        <div class="form-row-meta">
+          <span class="badge-status ${statusClass}">${statusLabel}</span>
+          <span class="meta-item">&#128100; ${f.assigned_count} atribuído${f.assigned_count!==1?'s':''}</span>
+          <span class="meta-item">&#8801; ${f.response_count} resposta${f.response_count!==1?'s':''}</span>
+          <span class="meta-item">&#128197; ${date}</span>
+        </div>
+      </div>
+      <div class="form-row-actions">
+        <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
+        <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
+        <div class="dropdown" style="position:relative">
+          <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item danger" onclick="deleteForm('${f.id}','${esc(f.title).replace(/'/g,"\\'")}')">&#128465; Excluir</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── FORM MODAL ───────────────────────────────────────────────
+let editingFormId = null, fieldCount = 0;
+
+function openFormModal() {
   editingFormId = null; fieldCount = 0;
   document.getElementById('form-modal-title').textContent = 'Novo formulário';
   document.getElementById('fm-title').value = '';
@@ -220,12 +902,12 @@ function closeFormModal() { document.getElementById('form-modal').classList.remo
 
 async function loadAssignUsers(selectedIds=[]) {
   const data = await api('/api/users');
-  const users = (data.users || []).filter(u => u.role !== 'admin');
+  const users = (data.users||[]).filter(u => u.role !== 'admin');
   const el = document.getElementById('assign-users');
-  if (!users.length) { el.innerHTML = '<span style="font-size:12px;color:#4A545E">Nenhum usuário cadastrado.</span>'; return; }
+  if (!users.length) { el.innerHTML = '<span style="font-size:12px;color:#9ca3af">Nenhum usuário cadastrado.</span>'; return; }
   el.innerHTML = users.map(u => `
-    <label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:300;color:#012824;cursor:pointer;background:#f8f9fa;border:1px solid #e0e3e8;border-radius:7px;padding:6px 10px">
-      <input type="checkbox" data-uid="${u.id}" ${selectedIds.includes(u.id)||selectedIds.includes(String(u.id)) ? 'checked' : ''} style="accent-color:#023631">
+    <label class="assign-chip">
+      <input type="checkbox" data-uid="${u.id}" ${selectedIds.includes(u.id)||selectedIds.includes(String(u.id))?'checked':''}>
       ${esc(u.name)}
     </label>`).join('');
 }
@@ -239,7 +921,7 @@ function addField(existing=null) {
   const opts = existing?.options ? JSON.parse(JSON.stringify(existing.options)) : [];
   el.innerHTML = `
     <div class="field-item-head">
-      <select class="form-select" id="ft-${idx}" onchange="onTypeChange(${idx})" style="width:150px;flex-shrink:0">
+      <select class="form-select" id="ft-${idx}" onchange="onTypeChange(${idx})" style="width:160px;flex-shrink:0">
         <option value="text" ${type==='text'?'selected':''}>Texto curto</option>
         <option value="textarea" ${type==='textarea'?'selected':''}>Texto longo</option>
         <option value="radio" ${type==='radio'?'selected':''}>Escolha única</option>
@@ -251,11 +933,11 @@ function addField(existing=null) {
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#023631;cursor:pointer;flex-shrink:0">
         <input type="checkbox" id="fr-${idx}" ${existing?.required?'checked':''} style="accent-color:#023631"> Obrig.
       </label>
-      <button class="btn btn-danger btn-icon" onclick="removeField(${idx})" title="Remover">&#10005;</button>
+      <button class="btn-danger btn-icon btn-sm" onclick="removeField(${idx})">&#10005;</button>
     </div>
-    <div id="fopts-${idx}" class="field-options-list"></div>`;
+    <div id="fopts-${idx}" class="field-options-list" style="display:none"></div>`;
   document.getElementById('fields-list').appendChild(el);
-  if (opts.length) { opts.forEach(o => addOption(idx, o)); }
+  if (opts.length) opts.forEach(o => addOption(idx, o));
   else if (['radio','checkbox','select'].includes(type)) { addOption(idx); addOption(idx); }
   onTypeChange(idx);
 }
@@ -276,22 +958,20 @@ function addOption(idx, val='') {
   const row = document.createElement('div');
   row.className = 'field-option-row';
   row.innerHTML = `<input class="form-input" placeholder="Opção..." value="${esc(val)}" style="font-size:12px;padding:7px 10px">
-    <button class="btn btn-danger btn-icon btn-sm" onclick="this.parentElement.remove()" title="Remover">&#10005;</button>`;
+    <button class="btn-danger btn-icon btn-sm" onclick="this.parentElement.remove()">&#10005;</button>`;
   document.getElementById(`fopts-${idx}`).appendChild(row);
 }
 
 function removeField(idx) { document.getElementById(`fi-${idx}`)?.remove(); }
 
 function collectFields() {
-  const items = document.querySelectorAll('.field-item');
-  return [...items].map(item => {
+  return [...document.querySelectorAll('.field-item')].map(item => {
     const idx = item.id.replace('fi-','');
     const type = document.getElementById(`ft-${idx}`).value;
     const label = document.getElementById(`fl-${idx}`).value.trim();
     const required = document.getElementById(`fr-${idx}`).checked;
     const options = type === 'acesso' ? null :
-      [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
-        .map(i => i.value.trim()).filter(Boolean);
+      [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)].map(i => i.value.trim()).filter(Boolean);
     return { label, type, required, options: options?.length ? options : null };
   }).filter(f => f.label);
 }
@@ -302,11 +982,9 @@ async function saveForm() {
   alertEl.style.display = 'none';
   const title = document.getElementById('fm-title').value.trim();
   if (!title) { alertEl.textContent='Título é obrigatório'; alertEl.style.display='block'; return; }
-
   const fields = collectFields();
   const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => i.dataset.uid);
   const description = document.getElementById('fm-desc').value.trim();
-
   btn.textContent = 'Salvando...'; btn.disabled = true;
   try {
     let data;
@@ -317,17 +995,17 @@ async function saveForm() {
     }
     if (!data.success) throw new Error(data.error);
     closeFormModal();
-    loadForms();
-  } catch(e) {
-    alertEl.textContent = e.message; alertEl.style.display = 'block';
-  }
+    allForms = [];
+    if (currentPanel === 'dashboard') loadDashboard();
+    else loadFormsPanel();
+  } catch(e) { alertEl.textContent = e.message; alertEl.style.display = 'block'; }
   btn.textContent = 'Salvar formulário'; btn.disabled = false;
 }
 
 async function deleteForm(id, title) {
-  if (!confirm(`Excluir o formulário "${title}"? Todas as respostas serão apagadas. Esta ação não pode ser desfeita.`)) return;
-  const data = await api(`/api/forms/${id}`, { method: 'DELETE' });
-  if (data.success) loadForms();
+  if (!confirm(`Excluir o formulário "${title}"? Todas as respostas serão apagadas.`)) return;
+  const data = await api(`/api/forms/${id}`, { method:'DELETE' });
+  if (data.success) { allForms = []; if (currentPanel==='dashboard') loadDashboard(); else loadFormsPanel(); }
   else alert(data.error);
 }
 
@@ -335,16 +1013,17 @@ async function deleteForm(id, title) {
 let editingUserId = null;
 async function loadUsers() {
   const data = await api('/api/users');
+  allUsers = data.users || [];
   const tbody = document.getElementById('users-body');
-  if (!data.users?.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Nenhum usuário cadastrado.</td></tr>`; return; }
-  tbody.innerHTML = data.users.map(u => `<tr>
+  if (!allUsers.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Nenhum usuário cadastrado.</td></tr>`; return; }
+  tbody.innerHTML = allUsers.map(u => `<tr>
     <td><strong>${esc(u.name)}</strong></td>
-    <td>${esc(u.username || u.email)}</td>
+    <td>${esc(u.username||u.email)}</td>
     <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
     <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
     <td style="white-space:nowrap">
-      <button class="btn btn-secondary btn-sm" onclick="openUserModal(${JSON.stringify(u).replace(/"/g,'&quot;')})">Editar</button>
-      ${u.id !== me.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:4px">Excluir</button>` : ''}
+      <button class="btn-action" onclick='openUserModal(${JSON.stringify(u)})'>Editar</button>
+      ${u.id!==me.id?`<button class="btn-action danger" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:6px">Excluir</button>`:''}
     </td>
   </tr>`).join('');
 }
@@ -368,8 +1047,9 @@ function autoUsername() {
   if (editingUserId) return;
   const name = document.getElementById('um-name').value.trim();
   const parts = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/\s+/);
-  if (parts.length >= 2) document.getElementById('um-email').value = parts[0] + '.' + parts[parts.length - 1];
+  if (parts.length >= 2) document.getElementById('um-email').value = parts[0]+'.'+parts[parts.length-1];
 }
+
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
 
 async function saveUser() {
@@ -381,19 +1061,16 @@ async function saveUser() {
   const password = document.getElementById('um-password').value;
   const role = document.getElementById('um-role').value;
   if (!name||!email) { alertEl.textContent='Nome e usuário são obrigatórios'; alertEl.style.display='block'; return; }
-  if (!editingUserId && !password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
-
+  if (!editingUserId&&!password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
   btn.textContent='Salvando...'; btn.disabled=true;
   try {
-    const body = { name, email, role, ...(password ? { password } : {}) };
+    const body = { name, email, role, ...(password?{password}:{}) };
     const data = editingUserId
       ? await api(`/api/users/${editingUserId}`, { method:'PUT', body: JSON.stringify(body) })
       : await api('/api/users', { method:'POST', body: JSON.stringify(body) });
     if (!data.success) throw new Error(data.error);
     closeUserModal(); loadUsers();
-  } catch(e) {
-    alertEl.textContent=e.message; alertEl.style.display='block';
-  }
+  } catch(e) { alertEl.textContent=e.message; alertEl.style.display='block'; }
   btn.textContent='Salvar'; btn.disabled=false;
 }
 
@@ -415,60 +1092,47 @@ async function loadResponsesFormList() {
 async function loadResponses() {
   const formId = document.getElementById('resp-form-select').value;
   const area = document.getElementById('responses-area');
-  if (!formId) { area.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>`; return; }
-
+  if (!formId) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>`; return; }
   area.innerHTML = '<div class="empty-state"><p>Carregando...</p></div>';
   const data = await api(`/api/responses?formId=${formId}`);
   if (!data.success) { area.innerHTML = `<div class="alert alert-error">${data.error}</div>`; return; }
-
   const { fields, responses, assigned } = data;
   const respondedIds = new Set(responses.map(r => r.user_id));
   const pending = assigned.filter(u => !respondedIds.has(u.id) && !respondedIds.has(String(u.id)));
-
-  let html = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-    <a href="/api/responses/export?formId=${formId}" class="btn btn-primary" target="_blank">Exportar CSV</a>
-    <span style="font-size:12px;font-weight:300;color:#4A545E;align-self:center">${responses.length} resposta(s) de ${assigned.length} atribuídos</span>
+  let html = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <a href="/api/responses/export?formId=${formId}" class="btn-new" target="_blank" style="text-decoration:none">&#11123; Exportar CSV</a>
+    <span style="font-size:12px;color:#4A545E">${responses.length} resposta(s) de ${assigned.length} atribuídos</span>
   </div>`;
-
-  if (pending.length) {
-    html += `<div class="alert alert-info" style="margin-bottom:16px">Ainda sem resposta: ${pending.map(u => `<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
-  }
-
-  if (!responses.length) {
-    html += `<div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Nenhuma resposta enviada ainda.</p></div>`;
-    area.innerHTML = html; return;
-  }
-
+  if (pending.length) html += `<div class="alert alert-info" style="margin-bottom:16px">Sem resposta: ${pending.map(u=>`<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
+  if (!responses.length) { html += `<div class="empty-state"><div class="empty-icon">&#128203;</div><p>Nenhuma resposta ainda.</p></div>`; area.innerHTML = html; return; }
   const headers = ['Usuário', 'Email', 'Enviado em', ...fields.map(f => f.label)];
-  html += `<div class="card"><div class="table-wrap"><table>
-    <thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-    <tbody>${responses.map(r => `<tr>
+  html += `<div class="table-card"><div class="table-wrap"><table>
+    <thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
+    <tbody>${responses.map(r=>`<tr>
       <td><strong>${esc(r.user_name)}</strong></td>
       <td>${esc(r.user_email)}</td>
       <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
-      ${fields.map(f => {
-        const v = r.values[f.id] || '';
-        let display = v;
-        if (f.field_type === 'acesso' && v.includes('||')) {
-          const parts = v.split('||');
-          if (parts[0] === 'SIM') {
-            display = parts[1] ? `Acesso: SIM / Funciona: ${parts[1]}${parts[2] ? ' / Obs: '+parts[2] : ''}` : 'Acesso: SIM';
-          } else {
-            display = `Acesso: NAO${parts[1] ? ' / Obs: '+parts[1] : ''}`;
-          }
-        } else if (v.includes('||')) {
-          display = v.split('||').join(', ');
-        }
+      ${fields.map(f=>{
+        const v = r.values[f.id]||'';
+        let display=v;
+        if(f.field_type==='acesso'&&v.includes('||')){
+          const p=v.split('||');
+          display=p[0]==='SIM'?`Acesso: SIM${p[1]?' / Funciona: '+p[1]:''}${p[2]?' / Obs: '+p[2]:''}`:(`Acesso: NAO${p[1]?' / Obs: '+p[1]:''}`);
+        } else if(v.includes('||')) display=v.split('||').join(', ');
         return `<td>${esc(display)}</td>`;
       }).join('')}
     </tr>`).join('')}
     </tbody></table></div></div>`;
-
   area.innerHTML = html;
 }
 
-// ── INIT ────────────────────────────────────────────────────
-loadForms();
+// ── INIT ─────────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  }
+});
+loadDashboard();
 </script>
 </body>
 </html>
