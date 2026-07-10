@@ -1278,9 +1278,9 @@ function openImportModal() {
   document.getElementById('import-save-btn').style.display = 'none';
   document.getElementById('import-alert').style.display = 'none';
   document.getElementById('import-file').value = '';
-  document.getElementById('import-modal').classList.add('active');
+  document.getElementById('import-modal').classList.add('open');
 }
-function closeImportModal() { document.getElementById('import-modal').classList.remove('active'); }
+function closeImportModal() { document.getElementById('import-modal').classList.remove('open'); }
 
 function downloadTemplate() {
   const csv = 'nome,usuario,senha\nJoão Silva,joao.silva,senha123\nMaria Souza,maria.souza,';
