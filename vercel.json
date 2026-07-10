@@ -1,19 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "classificador.js",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+  "rewrites": [
+    { "source": "/", "destination": "/public/login.html" },
+    { "source": "/dashboard", "destination": "/public/dashboard.html" },
+    { "source": "/form", "destination": "/public/form.html" },
+    { "source": "/admin", "destination": "/public/admin.html" }
   ]
 }

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meus Formulários — SBK Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+<nav class="topbar">
+  <div class="topbar-logo">
+    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
+  </div>
+  <span class="topbar-name">SBK Forms</span>
+  <div class="topbar-right">
+    <span class="topbar-user">Olá, <strong id="user-name">...</strong></span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">Meus formulários</div>
+  <div class="page-sub">Preencha os formulários atribuídos a você pela equipe de gestão.</div>
+  <div id="list">
+    <div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Carregando...</p></div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('sbk_token');
+  const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
+  if (!token || !user) window.location.href = '/';
+  if (user?.role === 'admin') window.location.href = '/admin';
+
+  document.getElementById('user-name').textContent = user?.name || '';
+
+  function logout() {
+    localStorage.removeItem('sbk_token');
+    localStorage.removeItem('sbk_user');
+    window.location.href = '/';
+  }
+
+  async function load() {
+    const res = await fetch('/api/forms', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    const list = document.getElementById('list');
+
+    if (!data.success) {
+      list.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+      return;
+    }
+
+    if (!data.forms.length) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="empty-state-icon">&#128203;</div>
+        <p>Nenhum formulário atribuído a você no momento.<br>Aguarde a equipe de gestão.</p>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = data.forms.map(f => `
+      <a class="form-card" href="/form?id=${f.id}">
+        <div class="form-card-icon">&#128196;</div>
+        <div class="form-card-body">
+          <div class="form-card-title">${esc(f.title)}</div>
+          ${f.description ? `<div class="form-card-desc">${esc(f.description)}</div>` : ''}
+          <div style="margin-top:6px">
+            ${f.already_responded
+              ? '<span class="badge badge-green">Enviado</span>'
+              : '<span class="badge badge-yellow">Pendente</span>'}
+          </div>
+        </div>
+        <div class="form-card-arrow">&#8250;</div>
+      </a>
+    `).join('');
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  load();
+</script>
+</body>
+</html>

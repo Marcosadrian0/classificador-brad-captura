@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — SBK Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+<nav class="topbar">
+  <div class="topbar-logo">
+    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
+  </div>
+  <span class="topbar-name">SBK Forms</span>
+  <div style="margin-left:8px"><span class="badge badge-yellow" style="font-size:9px">Admin</span></div>
+  <div class="topbar-right">
+    <span class="topbar-user">Olá, <strong id="user-name">...</strong></span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div class="page-title">Painel administrativo</div>
+      <div class="page-sub" style="margin:0">Gerencie formulários, usuários e visualize respostas.</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('forms')">Formulários</button>
+    <button class="tab-btn" onclick="switchTab('users')">Usuários</button>
+    <button class="tab-btn" onclick="switchTab('responses')">Respostas</button>
+  </div>
+
+  <!-- FORMULÁRIOS -->
+  <div id="tab-forms" class="tab-panel active">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="openFormModal()">+ Novo formulário</button>
+    </div>
+    <div id="forms-list"><div class="empty-state"><p>Carregando...</p></div></div>
+  </div>
+
+  <!-- USUÁRIOS -->
+  <div id="tab-users" class="tab-panel">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="openUserModal()">+ Novo usuário</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table id="users-table">
+          <thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
+          <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPOSTAS -->
+  <div id="tab-responses" class="tab-panel">
+    <div class="card" style="margin-bottom:16px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Selecionar formulário</label>
+        <select class="form-select" id="resp-form-select" onchange="loadResponses()">
+          <option value="">Escolha um formulário...</option>
+        </select>
+      </div>
+    </div>
+    <div id="responses-area"><div class="empty-state"><div class="empty-state-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div></div>
+  </div>
+</div>
+
+<!-- MODAL: NOVO / EDITAR FORMULÁRIO -->
+<div class="modal-overlay" id="form-modal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-title" id="form-modal-title">Novo formulário</div>
+    <div id="form-modal-alert" style="display:none" class="alert alert-error"></div>
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Título <span class="req">*</span></label>
+        <input class="form-input" id="fm-title" placeholder="Ex: Levantamento de acessos aos sistemas">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-textarea" id="fm-desc" placeholder="Instruções ou contexto para os usuários..."></textarea>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Campos do formulário</div>
+      <div id="fields-list"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addField()" style="margin-top:8px">+ Adicionar campo</button>
+    </div>
+
+    <div>
+      <div style="font-size:11px;font-weight:600;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Atribuir para usuários</div>
+      <div id="assign-users" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeFormModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveForm()" id="form-save-btn">Salvar formulário</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NOVO / EDITAR USUÁRIO -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <div class="modal-title" id="user-modal-title">Novo usuário</div>
+    <div id="user-modal-alert" style="display:none" class="alert alert-error"></div>
+    <div class="form-group">
+      <label class="form-label">Nome completo <span class="req">*</span></label>
+      <input class="form-input" id="um-name" placeholder="Nome do colaborador">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email <span class="req">*</span></label>
+      <input class="form-input" type="email" id="um-email" placeholder="email@sbk.com.br">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha <span class="req" id="um-pwd-req">*</span></label>
+      <input class="form-input" type="password" id="um-password" placeholder="Mínimo 6 caracteres">
+      <div class="form-hint" id="um-pwd-hint"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Perfil</label>
+      <select class="form-select" id="um-role">
+        <option value="user">Usuário</option>
+        <option value="admin">Administrador</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()" id="user-save-btn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('sbk_token');
+const me = JSON.parse(localStorage.getItem('sbk_user') || 'null');
+if (!token || !me) window.location.href = '/';
+if (me?.role !== 'admin') window.location.href = '/dashboard';
+document.getElementById('user-name').textContent = me?.name || '';
+
+function logout() { localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user'); window.location.href = '/'; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function api(path, opts={}) {
+  return fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+token, ...(opts.headers||{}) } }).then(r=>r.json());
+}
+
+// ── TABS ────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['forms','users','responses'][i] === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'forms') loadForms();
+  if (name === 'users') loadUsers();
+  if (name === 'responses') loadResponsesFormList();
+}
+
+// ── FORMS LIST ──────────────────────────────────────────────
+let allForms = [];
+async function loadForms() {
+  const data = await api('/api/forms');
+  allForms = data.forms || [];
+  const el = document.getElementById('forms-list');
+  if (!allForms.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Nenhum formulário criado ainda.<br>Clique em "Novo formulário" para começar.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Título</th><th>Status</th><th>Atribuídos</th><th>Respostas</th><th>Criado em</th><th></th></tr></thead>
+    <tbody>${allForms.map(f => `<tr>
+      <td><strong>${esc(f.title)}</strong>${f.description?`<div style="font-size:11px;color:#4A545E;margin-top:2px">${esc(f.description)}</div>`:''}</td>
+      <td>${f.is_active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>'}</td>
+      <td>${f.assigned_count}</td>
+      <td>${f.response_count}</td>
+      <td style="white-space:nowrap">${new Date(f.created_at).toLocaleDateString('pt-BR')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editForm(${f.id})">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteForm(${f.id},'${esc(f.title)}')" style="margin-left:4px">Excluir</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+
+// ── FORM MODAL ──────────────────────────────────────────────
+let editingFormId = null;
+let fieldCount = 0;
+
+function openFormModal(formData=null) {
+  editingFormId = null; fieldCount = 0;
+  document.getElementById('form-modal-title').textContent = 'Novo formulário';
+  document.getElementById('fm-title').value = '';
+  document.getElementById('fm-desc').value = '';
+  document.getElementById('fields-list').innerHTML = '';
+  document.getElementById('form-modal-alert').style.display = 'none';
+  loadAssignUsers([]);
+  document.getElementById('form-modal').classList.add('open');
+}
+
+async function editForm(id) {
+  const data = await api(`/api/forms/${id}`);
+  if (!data.success) return;
+  const f = data.form;
+  editingFormId = id; fieldCount = 0;
+  document.getElementById('form-modal-title').textContent = 'Editar formulário';
+  document.getElementById('fm-title').value = f.title;
+  document.getElementById('fm-desc').value = f.description || '';
+  document.getElementById('fields-list').innerHTML = '';
+  document.getElementById('form-modal-alert').style.display = 'none';
+  f.fields.forEach(field => addField(field));
+  loadAssignUsers(f.assignments.map(u => u.id));
+  document.getElementById('form-modal').classList.add('open');
+}
+
+function closeFormModal() { document.getElementById('form-modal').classList.remove('open'); }
+
+async function loadAssignUsers(selectedIds=[]) {
+  const data = await api('/api/users');
+  const users = (data.users || []).filter(u => u.role !== 'admin');
+  const el = document.getElementById('assign-users');
+  if (!users.length) { el.innerHTML = '<span style="font-size:12px;color:#4A545E">Nenhum usuário cadastrado.</span>'; return; }
+  el.innerHTML = users.map(u => `
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:300;color:#012824;cursor:pointer;background:#f8f9fa;border:1px solid #e0e3e8;border-radius:7px;padding:6px 10px">
+      <input type="checkbox" data-uid="${u.id}" ${selectedIds.includes(u.id)||selectedIds.includes(String(u.id)) ? 'checked' : ''} style="accent-color:#023631">
+      ${esc(u.name)}
+    </label>`).join('');
+}
+
+function addField(existing=null) {
+  const idx = fieldCount++;
+  const el = document.createElement('div');
+  el.className = 'field-item';
+  el.id = `fi-${idx}`;
+  const type = existing?.field_type || 'text';
+  const opts = existing?.options ? JSON.parse(JSON.stringify(existing.options)) : [];
+  el.innerHTML = `
+    <div class="field-item-head">
+      <select class="form-select" id="ft-${idx}" onchange="onTypeChange(${idx})" style="width:150px;flex-shrink:0">
+        <option value="text" ${type==='text'?'selected':''}>Texto curto</option>
+        <option value="textarea" ${type==='textarea'?'selected':''}>Texto longo</option>
+        <option value="radio" ${type==='radio'?'selected':''}>Escolha única</option>
+        <option value="checkbox" ${type==='checkbox'?'selected':''}>Múltipla escolha</option>
+        <option value="select" ${type==='select'?'selected':''}>Lista suspensa</option>
+      </select>
+      <input class="form-input" id="fl-${idx}" placeholder="Rótulo do campo" value="${esc(existing?.label||'')}" style="flex:1">
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#023631;cursor:pointer;flex-shrink:0">
+        <input type="checkbox" id="fr-${idx}" ${existing?.required?'checked':''} style="accent-color:#023631"> Obrig.
+      </label>
+      <button class="btn btn-danger btn-icon" onclick="removeField(${idx})" title="Remover">&#10005;</button>
+    </div>
+    <div id="fopts-${idx}" class="field-options-list"></div>`;
+  document.getElementById('fields-list').appendChild(el);
+  if (opts.length) { opts.forEach(o => addOption(idx, o)); }
+  else if (['radio','checkbox','select'].includes(type)) { addOption(idx); addOption(idx); }
+  onTypeChange(idx);
+}
+
+function onTypeChange(idx) {
+  const type = document.getElementById(`ft-${idx}`).value;
+  const optEl = document.getElementById(`fopts-${idx}`);
+  if (['radio','checkbox','select'].includes(type)) {
+    if (!optEl.children.length) { addOption(idx); addOption(idx); }
+    optEl.style.display = 'flex';
+  } else {
+    optEl.style.display = 'none';
+  }
+}
+
+function addOption(idx, val='') {
+  const row = document.createElement('div');
+  row.className = 'field-option-row';
+  row.innerHTML = `<input class="form-input" placeholder="Opção..." value="${esc(val)}" style="font-size:12px;padding:7px 10px">
+    <button class="btn btn-danger btn-icon btn-sm" onclick="this.parentElement.remove()" title="Remover">&#10005;</button>`;
+  document.getElementById(`fopts-${idx}`).appendChild(row);
+}
+
+function removeField(idx) { document.getElementById(`fi-${idx}`)?.remove(); }
+
+function collectFields() {
+  const items = document.querySelectorAll('.field-item');
+  return [...items].map(item => {
+    const idx = item.id.replace('fi-','');
+    const type = document.getElementById(`ft-${idx}`).value;
+    const label = document.getElementById(`fl-${idx}`).value.trim();
+    const required = document.getElementById(`fr-${idx}`).checked;
+    const options = [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
+      .map(i => i.value.trim()).filter(Boolean);
+    return { label, type, required, options: options.length ? options : null };
+  }).filter(f => f.label);
+}
+
+async function saveForm() {
+  const alertEl = document.getElementById('form-modal-alert');
+  const btn = document.getElementById('form-save-btn');
+  alertEl.style.display = 'none';
+  const title = document.getElementById('fm-title').value.trim();
+  if (!title) { alertEl.textContent='Título é obrigatório'; alertEl.style.display='block'; return; }
+
+  const fields = collectFields();
+  const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => Number(i.dataset.uid));
+  const description = document.getElementById('fm-desc').value.trim();
+
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+  try {
+    let data;
+    if (editingFormId) {
+      data = await api(`/api/forms/${editingFormId}`, { method:'PUT', body: JSON.stringify({ title, description, is_active: true, userIds }) });
+    } else {
+      data = await api('/api/forms', { method:'POST', body: JSON.stringify({ title, description, fields, userIds }) });
+    }
+    if (!data.success) throw new Error(data.error);
+    closeFormModal();
+    loadForms();
+  } catch(e) {
+    alertEl.textContent = e.message; alertEl.style.display = 'block';
+  }
+  btn.textContent = 'Salvar formulário'; btn.disabled = false;
+}
+
+async function deleteForm(id, title) {
+  if (!confirm(`Excluir o formulário "${title}"? Todas as respostas serão apagadas. Esta ação não pode ser desfeita.`)) return;
+  const data = await api(`/api/forms/${id}`, { method: 'DELETE' });
+  if (data.success) loadForms();
+  else alert(data.error);
+}
+
+// ── USERS ────────────────────────────────────────────────────
+let editingUserId = null;
+async function loadUsers() {
+  const data = await api('/api/users');
+  const tbody = document.getElementById('users-body');
+  if (!data.users?.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Nenhum usuário cadastrado.</td></tr>`; return; }
+  tbody.innerHTML = data.users.map(u => `<tr>
+    <td><strong>${esc(u.name)}</strong></td>
+    <td>${esc(u.email)}</td>
+    <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
+    <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-secondary btn-sm" onclick="openUserModal(${JSON.stringify(u).replace(/"/g,'&quot;')})">Editar</button>
+      ${u.id !== me.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${esc(u.name)}')" style="margin-left:4px">Excluir</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+function openUserModal(user=null) {
+  editingUserId = user?.id || null;
+  document.getElementById('user-modal-title').textContent = user ? 'Editar usuário' : 'Novo usuário';
+  document.getElementById('um-name').value = user?.name || '';
+  document.getElementById('um-email').value = user?.email || '';
+  document.getElementById('um-password').value = '';
+  document.getElementById('um-role').value = user?.role || 'user';
+  document.getElementById('user-modal-alert').style.display = 'none';
+  const hint = document.getElementById('um-pwd-hint');
+  const req = document.getElementById('um-pwd-req');
+  if (user) { hint.textContent = 'Deixe em branco para manter a senha atual.'; req.style.display='none'; }
+  else { hint.textContent = ''; req.style.display='inline'; }
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
+
+async function saveUser() {
+  const alertEl = document.getElementById('user-modal-alert');
+  const btn = document.getElementById('user-save-btn');
+  alertEl.style.display = 'none';
+  const name = document.getElementById('um-name').value.trim();
+  const email = document.getElementById('um-email').value.trim();
+  const password = document.getElementById('um-password').value;
+  const role = document.getElementById('um-role').value;
+  if (!name||!email) { alertEl.textContent='Nome e email são obrigatórios'; alertEl.style.display='block'; return; }
+  if (!editingUserId && !password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+  try {
+    const body = { name, email, role, ...(password ? { password } : {}) };
+    const data = editingUserId
+      ? await api(`/api/users/${editingUserId}`, { method:'PUT', body: JSON.stringify(body) })
+      : await api('/api/users', { method:'POST', body: JSON.stringify(body) });
+    if (!data.success) throw new Error(data.error);
+    closeUserModal(); loadUsers();
+  } catch(e) {
+    alertEl.textContent=e.message; alertEl.style.display='block';
+  }
+  btn.textContent='Salvar'; btn.disabled=false;
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Excluir o usuário "${name}"?`)) return;
+  const data = await api(`/api/users/${id}`, { method:'DELETE' });
+  if (data.success) loadUsers();
+  else alert(data.error);
+}
+
+// ── RESPONSES ────────────────────────────────────────────────
+async function loadResponsesFormList() {
+  const data = await api('/api/forms');
+  const sel = document.getElementById('resp-form-select');
+  sel.innerHTML = '<option value="">Escolha um formulário...</option>' +
+    (data.forms||[]).map(f => `<option value="${f.id}">${esc(f.title)} (${f.response_count} respostas)</option>`).join('');
+}
+
+async function loadResponses() {
+  const formId = document.getElementById('resp-form-select').value;
+  const area = document.getElementById('responses-area');
+  if (!formId) { area.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>`; return; }
+
+  area.innerHTML = '<div class="empty-state"><p>Carregando...</p></div>';
+  const data = await api(`/api/responses?formId=${formId}`);
+  if (!data.success) { area.innerHTML = `<div class="alert alert-error">${data.error}</div>`; return; }
+
+  const { fields, responses, assigned } = data;
+  const respondedIds = new Set(responses.map(r => r.user_id));
+  const pending = assigned.filter(u => !respondedIds.has(u.id) && !respondedIds.has(String(u.id)));
+
+  let html = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <a href="/api/responses/export?formId=${formId}" class="btn btn-primary" target="_blank">Exportar CSV</a>
+    <span style="font-size:12px;font-weight:300;color:#4A545E;align-self:center">${responses.length} resposta(s) de ${assigned.length} atribuídos</span>
+  </div>`;
+
+  if (pending.length) {
+    html += `<div class="alert alert-info" style="margin-bottom:16px">Ainda sem resposta: ${pending.map(u => `<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
+  }
+
+  if (!responses.length) {
+    html += `<div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Nenhuma resposta enviada ainda.</p></div>`;
+    area.innerHTML = html; return;
+  }
+
+  const headers = ['Usuário', 'Email', 'Enviado em', ...fields.map(f => f.label)];
+  html += `<div class="card"><div class="table-wrap"><table>
+    <thead><tr>${headers.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+    <tbody>${responses.map(r => `<tr>
+      <td><strong>${esc(r.user_name)}</strong></td>
+      <td>${esc(r.user_email)}</td>
+      <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
+      ${fields.map(f => {
+        const v = r.values[f.id] || '';
+        return `<td>${esc(v.includes('||') ? v.split('||').join(', ') : v)}</td>`;
+      }).join('')}
+    </tr>`).join('')}
+    </tbody></table></div></div>`;
+
+  area.innerHTML = html;
+}
+
+// ── INIT ────────────────────────────────────────────────────
+loadForms();
+</script>
+</body>
+</html>
