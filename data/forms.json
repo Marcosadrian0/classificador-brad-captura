@@ -121,6 +121,12 @@
     "assigned_user_ids": [
       "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
       "a802ba16-d841-46be-89e7-c72e0cd34115"
+    ],
+    "triggers": [
+      {
+        "condition": "any_nao",
+        "target_form_id": "20fabfb8-0204-443d-931b-6e67b0913d18"
+      }
     ]
   },
   {
@@ -191,6 +197,7 @@
     "assigned_user_ids": [
       "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
       "a802ba16-d841-46be-89e7-c72e0cd34115"
-    ]
+    ],
+    "triggers": []
   }
 ]
