@@ -4,293 +4,708 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Formulário — SBK Forms</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  /* pill radio */
-  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-  .pill-opt { position: relative; }
-  .pill-opt input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
-  .pill-opt label {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 18px; border-radius: 99px; font-size: 12px; font-weight: 600;
-    border: 1.5px solid #d1d5db; background: #fff; color: #4A545E;
-    cursor: pointer; transition: all .15s; user-select: none;
-  }
-  .pill-opt input[type=radio]:checked + label {
-    background: #023631; border-color: #023631; color: #ECEFF3;
-  }
-  .pill-opt label:hover { border-color: #075056; color: #075056; }
-  .pill-opt input[type=radio]:checked + label:hover { color: #ECEFF3; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; overflow-x: hidden; }
 
-  /* acesso field */
-  .acesso-card {
-    background: #fff; border: 1.5px solid #e0e3e8; border-radius: 12px;
-    padding: 16px 20px; margin-bottom: 12px; transition: border-color .15s;
-  }
-  .acesso-card:focus-within { border-color: #075056; }
-  .acesso-label { font-size: 13px; font-weight: 600; color: #023631; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .acesso-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-  .acesso-sub { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f2f5; }
-  .acesso-sub-label { font-size: 11px; font-weight: 600; color: #4A545E; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-  .obs-area { margin-top: 12px; }
-  .obs-area textarea { background: #fafafa; }
+/* SIDEBAR */
+.sidebar { width: 220px; min-height: 100vh; background: #023631; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: width .2s; }
+.sidebar.collapsed { width: 64px; }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.logo-icon { display: flex; gap: 3px; flex-shrink: 0; }
+.lc { width: 8px; border-radius: 2px; }
+.lc1 { height: 18px; background: #4ade80; }
+.lc2 { height: 13px; background: rgba(255,255,255,.5); margin-top: 5px; }
+.lc3 { height: 22px; background: rgba(255,255,255,.25); }
+.logo-text { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+.sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; color: rgba(255,255,255,.6); font-size: 13px; cursor: pointer; transition: all .15s; text-decoration: none; white-space: nowrap; overflow: hidden; }
+.nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
+.nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-label { overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.08); }
+.plan-badge { background: rgba(255,255,255,.08); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+.sidebar.collapsed .plan-badge { display: none; }
+.plan-label { font-size: 10px; color: rgba(255,255,255,.4); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.plan-name { font-size: 12px; font-weight: 700; color: #4ade80; margin: 2px 0; }
+.plan-valid { font-size: 10px; color: rgba(255,255,255,.4); }
+.btn-collapse { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: rgba(255,255,255,.4); font-size: 11px; font-weight: 600; cursor: pointer; padding: 4px 2px; font-family: inherit; transition: color .15s; }
+.btn-collapse:hover { color: rgba(255,255,255,.8); }
+.sidebar.collapsed .btn-collapse span:last-child { display: none; }
 
-  /* field block improvements */
-  .field-block { margin-bottom: 24px; }
-  .field-label-text { font-size: 13px; font-weight: 600; color: #023631; margin-bottom: 10px; display: block; }
-  .req { color: #dc2626; }
+/* MAIN */
+.main { margin-left: 220px; width: calc(100vw - 220px); display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .2s, width .2s; overflow-x: hidden; }
+.sidebar.collapsed ~ .main { margin-left: 64px; width: calc(100vw - 64px); }
+
+/* TOPBAR */
+.topbar { height: 52px; background: #fff; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50; }
+.topbar-back { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #4A545E; text-decoration: none; transition: color .15s; }
+.topbar-back:hover { color: #023631; }
+.topbar-sep { width: 1px; height: 20px; background: #e8eaed; }
+.topbar-spacer { flex: 1; }
+.autosave { display: none; align-items: center; gap: 6px; font-size: 11px; color: #16a34a; font-weight: 600; }
+.autosave::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+.icon-btn { background: #f4f6f9; border: none; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #4A545E; font-size: 15px; position: relative; }
+.notif-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; background: #4ade80; border-radius: 50%; border: 2px solid #fff; }
+.user-chip { display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+.user-chip:hover { background: #f4f6f9; }
+.user-av { width: 30px; height: 30px; border-radius: 50%; background: #023631; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.user-nm { font-size: 12px; font-weight: 600; color: #1a2332; }
+.user-rl { font-size: 10px; color: #4A545E; }
+
+/* CONTENT */
+.content-wrap { display: flex; flex: 1; overflow: hidden; }
+.content-main { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 28px 24px 0; min-width: 0; display: flex; flex-direction: column; }
+.content-right { width: 260px; flex-shrink: 0; background: #fff; border-left: 1px solid #e8eaed; overflow-y: auto; overflow-x: hidden; padding: 20px 16px; }
+
+/* FORM HEADER */
+.form-header { margin-bottom: 20px; }
+.form-title { font-size: 20px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.form-desc { font-size: 13px; color: #4A545E; font-weight: 300; margin-bottom: 14px; }
+.progress-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.progress-outer { flex: 1; height: 8px; background: #e8eaed; border-radius: 99px; overflow: hidden; min-width: 100px; }
+.progress-inner { height: 100%; background: #4ade80; border-radius: 99px; transition: width .4s; }
+.progress-pct { font-size: 11px; font-weight: 600; color: #4A545E; white-space: nowrap; }
+.progress-step { font-size: 11px; color: #9ca3af; white-space: nowrap; }
+.time-badge { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #4A545E; background: #f4f6f9; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+
+/* SECTION */
+.section-card { background: #fff; border: 1px solid #e8eaed; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title { font-size: 15px; font-weight: 700; color: #1a2332; }
+
+/* FIELDS */
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.f-full { grid-column: 1 / -1; }
+.f-group { display: flex; flex-direction: column; gap: 6px; }
+.f-label { font-size: 12px; font-weight: 600; color: #1a2332; }
+.f-input, .f-select { height: 42px; padding: 0 14px; border: 1.5px solid #e8eaed; border-radius: 10px; font-size: 13px; font-family: inherit; color: #1a2332; background: #fff; outline: none; transition: border-color .15s; width: 100%; }
+.f-input:focus, .f-select:focus { border-color: #023631; }
+.f-textarea { padding: 12px 14px; border: 1.5px solid #e8eaed; border-radius: 10px; font-size: 13px; font-family: inherit; color: #1a2332; background: #fff; outline: none; transition: border-color .15s; width: 100%; resize: vertical; min-height: 80px; }
+.f-textarea:focus { border-color: #023631; }
+.req { color: #dc2626; }
+
+/* PILLS */
+.pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill-opt { position: relative; }
+.pill-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+.pill-opt label { display: inline-flex; align-items: center; padding: 7px 16px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1.5px solid #e8eaed; background: #fff; color: #4A545E; cursor: pointer; transition: all .15s; user-select: none; }
+.pill-opt input:checked + label { background: #023631; border-color: #023631; color: #fff; }
+.pill-opt label:hover { border-color: #075056; color: #075056; }
+.pill-opt input:checked + label:hover { color: #fff; }
+
+/* ACCESS CARDS */
+.cat-block { margin-bottom: 24px; }
+.cat-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.cat-name { font-size: 13px; font-weight: 700; color: #1a2332; }
+.cat-count { font-size: 11px; font-weight: 600; color: #fff; background: #023631; padding: 2px 8px; border-radius: 99px; }
+.access-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 12px; }
+.access-card { background: #fff; border: 1.5px solid #e8eaed; border-radius: 12px; padding: 16px; transition: all .15s; position: relative; }
+.access-card:hover { border-color: #023631; box-shadow: 0 2px 8px rgba(2,54,49,.08); }
+.access-card.sel-sim { border-color: #4ade80; background: #f0fdf4; }
+.access-card.sel-nao { border-color: #fb923c; background: #fff7ed; }
+.access-check { position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; opacity: 0; transition: opacity .15s; }
+.access-card.sel-sim .access-check { opacity: 1; background: #4ade80; color: #fff; }
+.access-card.sel-nao .access-check { opacity: 1; background: #fb923c; color: #fff; }
+.access-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.access-name { font-size: 13px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.access-desc { font-size: 11px; color: #4A545E; font-weight: 300; line-height: 1.4; margin-bottom: 12px; min-height: 30px; }
+.access-btns { display: flex; gap: 6px; }
+.access-btn { flex: 1; height: 30px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid #e8eaed; background: #fff; color: #4A545E; font-family: inherit; transition: all .15s; }
+.access-btn:hover { border-color: #023631; color: #023631; }
+.access-btn.sel-sim { background: #dcfce7; border-color: #4ade80; color: #16a34a; }
+.access-btn.sel-nao { background: #ffedd5; border-color: #fb923c; color: #ea580c; }
+.access-extra { margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f2f5; display: none; }
+.access-extra.show { display: block; }
+.extra-label { font-size: 10px; font-weight: 700; color: #4A545E; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.extra-textarea { width: 100%; padding: 8px 10px; border: 1.5px solid #e8eaed; border-radius: 8px; font-size: 11px; font-family: inherit; resize: none; min-height: 56px; outline: none; }
+.extra-textarea:focus { border-color: #023631; }
+
+/* REVIEW */
+.review-row { display: flex; gap: 8px; padding: 10px 0; border-bottom: 1px solid #f4f6f9; align-items: flex-start; }
+.review-label { width: 180px; font-size: 12px; font-weight: 600; color: #4A545E; flex-shrink: 0; }
+.review-value { font-size: 13px; color: #1a2332; }
+
+/* BOTTOM NAV */
+.bottom-nav { background: #fff; border-top: 1px solid #e8eaed; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; bottom: 0; z-index: 40; }
+.btn-ghost { height: 40px; padding: 0 20px; background: none; border: 1.5px solid #e8eaed; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: #4A545E; transition: all .15s; }
+.btn-ghost:hover { border-color: #023631; color: #023631; }
+.btn-draft { height: 40px; padding: 0 20px; background: #f4f6f9; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: #1a2332; transition: background .15s; }
+.btn-draft:hover { background: #e8eaed; }
+.btn-next { height: 40px; padding: 0 24px; background: #023631; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; color: #fff; transition: background .15s; }
+.btn-next:hover { background: #075056; }
+.btn-next:disabled { opacity: .5; cursor: default; }
+
+/* RIGHT PANEL */
+.rp-sec { margin-bottom: 24px; }
+.rp-title { font-size: 13px; font-weight: 700; color: #1a2332; margin-bottom: 14px; }
+.steps-list { display: flex; flex-direction: column; }
+.step-row { display: flex; align-items: flex-start; gap: 10px; }
+.step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; border: 2px solid #e8eaed; color: #9ca3af; background: #fff; }
+.step-row.done .step-circle { background: #4ade80; border-color: #4ade80; color: #fff; }
+.step-row.active .step-circle { background: #023631; border-color: #023631; color: #fff; }
+.step-info { padding-top: 4px; }
+.step-nm { font-size: 12px; font-weight: 600; color: #1a2332; }
+.step-row.active .step-nm { color: #023631; }
+.step-sb { font-size: 10px; color: #9ca3af; margin-top: 1px; }
+.step-line { width: 2px; height: 16px; background: #e8eaed; margin: 2px 0 2px 13px; }
+.step-line.done { background: #4ade80; }
+.sum-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; background: #dcfce7; color: #16a34a; margin-left: 8px; }
+.sum-cat { margin-bottom: 12px; }
+.sum-cat-nm { font-size: 10px; font-weight: 700; color: #4A545E; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+.sum-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #1a2332; }
+.sum-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; }
+.sum-tag.sim { background: #dcfce7; color: #16a34a; }
+.sum-tag.nao { background: #ffedd5; color: #ea580c; }
+.sum-empty { font-size: 12px; color: #9ca3af; }
+.help-card { background: #f4f6f9; border-radius: 10px; padding: 14px; }
+.help-title { font-size: 12px; font-weight: 700; color: #1a2332; margin-bottom: 6px; }
+.help-text { font-size: 11px; color: #4A545E; font-weight: 300; line-height: 1.5; margin-bottom: 10px; }
+.help-btn { height: 32px; width: 100%; background: #fff; border: 1.5px solid #e8eaed; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; color: #1a2332; transition: all .15s; }
+.help-btn:hover { border-color: #023631; color: #023631; }
+
+/* ALERTS */
+.alert { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.alert-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #9ca3af; text-align: center; }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
 </style>
 </head>
 <body>
-<nav class="topbar">
-  <div class="topbar-logo">
-    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
-  </div>
-  <span class="topbar-name">SBK Forms</span>
-  <div class="topbar-right">
-    <a href="/dashboard" style="color:rgba(236,239,243,.7);font-size:12px;font-weight:300;text-decoration:none">&#8592; Voltar</a>
-    <button class="btn-logout" onclick="logout()">Sair</button>
-  </div>
-</nav>
 
-<div class="page" style="max-width:700px">
-  <div id="content">
-    <div class="empty-state"><p>Carregando...</p></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div></div>
+    <span class="logo-text">SBK Forms</span>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  <div class="sidebar-footer">
+    <div class="plan-badge">
+      <div class="plan-label">Plano atual</div>
+      <div class="plan-name">Professional</div>
+      <div class="plan-valid">Válido até 10/08/2026</div>
+    </div>
+    <button class="btn-collapse" id="collapse-btn" onclick="toggleSidebar()">
+      <span style="font-size:16px">&#8592;</span><span>Recolher menu</span>
+    </button>
+  </div>
+</aside>
+
+<div class="main" id="main">
+  <header class="topbar">
+    <a class="topbar-back" href="/dashboard">&#8592; Voltar ao painel</a>
+    <div class="topbar-sep"></div>
+    <div class="autosave" id="autosave">Salvo automaticamente</div>
+    <div class="topbar-spacer"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="icon-btn">&#63;</button>
+      <button class="icon-btn"><span>&#128276;</span><span class="notif-dot"></span></button>
+      <button class="user-chip">
+        <div class="user-av" id="u-av">M</div>
+        <div>
+          <div class="user-nm" id="u-nm">...</div>
+          <div class="user-rl" id="u-rl">Usuário</div>
+        </div>
+        <span style="color:#9ca3af;font-size:11px;margin-left:2px">&#9660;</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="content-wrap">
+    <div class="content-main" id="content-main">
+      <div class="empty-state"><div class="empty-icon">&#128203;</div><p>Carregando formulário...</p></div>
+    </div>
+
+    <div class="content-right" id="content-right" style="display:none">
+      <div class="rp-sec">
+        <div class="rp-title">Progresso do formulário</div>
+        <div class="steps-list" id="rp-steps"></div>
+      </div>
+      <div class="rp-sec" id="rp-sum-sec" style="display:none">
+        <div class="rp-title">Resumo da seleção <span class="sum-badge" id="rp-cnt">0 acessos</span></div>
+        <div id="rp-sum-body"><div class="sum-empty">Nenhum acesso selecionado.</div></div>
+      </div>
+      <div class="rp-sec">
+        <div class="help-card">
+          <div class="help-title">&#129310; Precisa de ajuda?</div>
+          <div class="help-text">Fale com o suporte ou consulte nossa central de ajuda.</div>
+          <button class="help-btn">Abrir ajuda &#8599;</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  const token = localStorage.getItem('sbk_token');
-  const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
-  if (!token || !user) window.location.href = '/';
+const token = localStorage.getItem('sbk_token');
+const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
+if (!token || !user) window.location.href = '/';
+const formId = new URLSearchParams(location.search).get('id');
+if (!formId) window.location.href = '/dashboard';
 
-  const formId = new URLSearchParams(location.search).get('id');
-  if (!formId) window.location.href = '/dashboard';
+const av = (user.name||'U').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+document.getElementById('u-av').textContent = av;
+document.getElementById('u-nm').textContent = user.name || '';
+document.getElementById('u-rl').textContent = user.role === 'admin' ? 'Administrador' : 'Usuário';
 
-  function logout() { localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user'); window.location.href = '/'; }
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  let formData = null;
+// Sidebar nav
+const navItems = user.role === 'admin'
+  ? [['&#9783;','Painel','/dashboard'],['&#128203;','Formulários','/dashboard'],['&#128202;','Respostas','/admin'],['&#128101;','Usuários','/admin']]
+  : [['&#9783;','Painel','/dashboard'],['&#128203;','Formulários','/dashboard']];
+document.getElementById('sidebar-nav').innerHTML = navItems.map(([ic,lb,hr])=>
+  `<a class="nav-item" href="${hr}"><span class="nav-icon">${ic}</span><span class="nav-label">${lb}</span></a>`).join('');
 
-  function acessoChange(radio, fieldId) {
-    const val = radio.value;
-    const funEl = document.getElementById(`funciona_${fieldId}`);
-    const obsEl = document.getElementById(`obs_${fieldId}`);
-    funEl.style.display = val === 'SIM' ? 'block' : 'none';
-    obsEl.style.display = val === 'NÃO' ? 'block' : 'none';
-    if (val === 'SIM') {
-      document.querySelectorAll(`input[name="func_${fieldId}"]`).forEach(r => r.checked = false);
-      obsEl.style.display = 'none';
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  const btn = document.getElementById('collapse-btn');
+  btn.innerHTML = sb.classList.contains('collapsed')
+    ? '<span style="font-size:16px">&#8594;</span><span></span>'
+    : '<span style="font-size:16px">&#8592;</span><span>Recolher menu</span>';
+}
+
+// State
+let formData = null, values = {}, currentStep = 1, totalSteps = 1;
+let regularFields = [], acessoFields = [];
+
+const COLORS = ['#4f46e5','#0891b2','#16a34a','#d97706','#dc2626','#7c3aed','#0284c7','#047857','#b45309','#be185d'];
+function fieldColor(label) {
+  let h = 0; for (const c of label) h = (h*31 + c.charCodeAt(0)) & 0xffffffff;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+function fieldInitials(name) {
+  return name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z\s]/g,'').trim()
+    .split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,2) || 'S';
+}
+
+// Load
+async function load() {
+  const res = await fetch(`/api/forms/${formId}`, { headers: { Authorization: 'Bearer ' + token } });
+  const data = await res.json();
+  const el = document.getElementById('content-main');
+  if (!data.success) { el.innerHTML = `<div class="alert alert-error">${data.error}</div>`; return; }
+
+  formData = data.form;
+  const already = formData.myResponse;
+  values = already ? JSON.parse(JSON.stringify(already.values)) : {};
+  document.title = `${formData.title} — SBK Forms`;
+
+  regularFields = formData.fields.filter(f => f.field_type !== 'acesso');
+  acessoFields  = formData.fields.filter(f => f.field_type === 'acesso');
+
+  if (regularFields.length && acessoFields.length) totalSteps = 3;
+  else if (acessoFields.length) totalSteps = 2;
+  else totalSteps = 1;
+
+  if (acessoFields.length || regularFields.length > 2) document.getElementById('content-right').style.display = '';
+  if (acessoFields.length) document.getElementById('rp-sum-sec').style.display = '';
+
+  renderStep();
+}
+
+const STEP_LABELS = {
+  3: ['Informações básicas','Acessos necessários','Revisão e envio'],
+  2: ['Acessos necessários','Revisão e envio'],
+  1: ['Preenchimento']
+};
+const STEP_SUBS = {
+  3: ['Dados do colaborador','Seleção de sistemas e acessos','Revise suas seleções'],
+  2: ['Seleção de sistemas e acessos','Revise suas seleções'],
+  1: ['Preencha e envie']
+};
+
+function renderStep() {
+  renderRightPanel();
+  const pct = Math.round((currentStep / totalSteps) * 100);
+  const labels = STEP_LABELS[totalSteps];
+  const timeMin = Math.max(1, Math.ceil(formData.fields.length * 0.5));
+
+  let html = '';
+  if (formData.myResponse) {
+    html += `<div class="alert alert-info">Você já enviou este formulário em ${new Date(formData.myResponse.submitted_at).toLocaleString('pt-BR')}. Reenvie para atualizar.</div>`;
+  }
+
+  html += `<div class="form-header">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div><div class="form-title">${esc(formData.title)}</div>${formData.description?`<div class="form-desc">${esc(formData.description)}</div>`:''}</div>
+      <div class="time-badge">&#9200; Aprox. ${timeMin} min</div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-outer"><div class="progress-inner" style="width:${pct}%"></div></div>
+      <span class="progress-pct">${pct}% concluído</span>
+      ${totalSteps > 1 ? `<span class="progress-step">Etapa ${currentStep} de ${totalSteps}</span>` : ''}
+    </div>
+  </div>
+  <div id="form-alert" style="display:none" class="alert"></div>`;
+
+  // Step content
+  const isAcessoStep = (totalSteps === 3 && currentStep === 2) || (totalSteps === 2 && currentStep === 1);
+  const isReviewStep = currentStep === totalSteps && totalSteps > 1;
+  const isRegularStep = totalSteps === 3 ? currentStep === 1 : (totalSteps === 1);
+
+  if (isRegularStep && regularFields.length) html += buildRegularStep();
+  else if (isAcessoStep && acessoFields.length) html += buildAcessoStep();
+  else if (isReviewStep) html += buildReviewStep();
+  else if (totalSteps === 1) html += buildRegularStep();
+
+  // Bottom nav
+  html += `<div class="bottom-nav"><div>`;
+  if (currentStep > 1) html += `<button class="btn-ghost" onclick="goStep(-1)">&#8592; Anterior</button>`;
+  html += `</div><div style="display:flex;gap:10px">
+    <button class="btn-draft" onclick="saveDraft()">Salvar rascunho</button>`;
+  if (currentStep < totalSteps) {
+    html += `<button class="btn-next" onclick="goStep(1)">Próxima etapa &#8594;</button>`;
+  } else {
+    html += `<button class="btn-next" id="submit-btn" onclick="submitForm()">Enviar &#8594;</button>`;
+  }
+  html += `</div></div>`;
+
+  document.getElementById('content-main').innerHTML = html;
+}
+
+// Regular fields step
+function buildRegularStep() {
+  const fields = totalSteps === 1 ? formData.fields.filter(f => f.field_type !== 'acesso') : regularFields;
+  let html = `<div class="section-card"><div class="section-head"><div class="section-title">Informações do Colaborador</div></div><div class="fields-grid">`;
+  fields.forEach(f => {
+    const req = f.required ? '<span class="req"> *</span>' : '';
+    const val = values[f.id] || '';
+    if (f.field_type === 'text') {
+      html += `<div class="f-group"><label class="f-label">${esc(f.label)}${req}</label>
+        <input class="f-input" type="text" data-id="${f.id}" value="${esc(val)}" oninput="collectRegular()"></div>`;
+    } else if (f.field_type === 'textarea') {
+      html += `<div class="f-group f-full"><label class="f-label">${esc(f.label)}${req}</label>
+        <textarea class="f-textarea" data-id="${f.id}" oninput="collectRegular()">${esc(val)}</textarea></div>`;
+    } else if (f.field_type === 'radio') {
+      html += `<div class="f-group f-full"><label class="f-label">${esc(f.label)}${req}</label>
+        <div class="pill-group">${(f.options||[]).map(o=>`<div class="pill-opt">
+          <input type="radio" name="rf_${f.id}" data-id="${f.id}" value="${esc(o)}" ${val===o?'checked':''} onchange="collectRegular()">
+          <label>${esc(o)}</label></div>`).join('')}</div></div>`;
+    } else if (f.field_type === 'checkbox') {
+      const chk = val ? val.split('||') : [];
+      html += `<div class="f-group f-full"><label class="f-label">${esc(f.label)}${req}</label>
+        <div class="pill-group">${(f.options||[]).map(o=>`<div class="pill-opt">
+          <input type="checkbox" data-id="${f.id}" value="${esc(o)}" ${chk.includes(o)?'checked':''} onchange="collectRegular()">
+          <label>${esc(o)}</label></div>`).join('')}</div></div>`;
+    } else if (f.field_type === 'select') {
+      html += `<div class="f-group"><label class="f-label">${esc(f.label)}${req}</label>
+        <select class="f-select" data-id="${f.id}" onchange="collectRegular()">
+          <option value="">Selecione...</option>
+          ${(f.options||[]).map(o=>`<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}
+        </select></div>`;
     }
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+function collectRegular() {
+  const fields = totalSteps === 1 ? regularFields : regularFields;
+  fields.forEach(f => {
+    if (f.field_type === 'radio') {
+      const el = document.querySelector(`input[name="rf_${f.id}"]:checked`);
+      if (el) values[f.id] = el.value;
+    } else if (f.field_type === 'checkbox') {
+      values[f.id] = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)].map(e=>e.value).join('||');
+    } else {
+      const el = document.querySelector(`[data-id="${f.id}"]`);
+      if (el) values[f.id] = el.value;
+    }
+  });
+}
+
+// Acesso step
+function buildAcessoStep() {
+  const groups = groupAcessoFields(acessoFields);
+  let html = `<div class="section-card"><div class="section-head"><div class="section-title">Selecione os acessos necessários</div></div>`;
+  Object.entries(groups).forEach(([cat, fields]) => {
+    const sel = fields.filter(f => values[f.id]).length;
+    html += `<div class="cat-block"><div class="cat-header">
+      <div class="cat-name">${esc(cat)}</div>
+      <span class="cat-count" id="catcnt_${CSS.escape(cat)}">${sel} de ${fields.length} selecionados</span>
+    </div><div class="access-grid">`;
+    fields.forEach(f => {
+      html += buildAccessCard(f);
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function groupAcessoFields(fields) {
+  const g = {};
+  fields.forEach(f => {
+    let cat = 'Sistemas', name = f.label;
+    const m = f.label.match(/^([^:]+):\s*(.+)$/);
+    if (m) { cat = m[1].trim(); name = m[2].trim(); }
+    if (!g[cat]) g[cat] = [];
+    g[cat].push({ ...f, _name: name });
+  });
+  return g;
+}
+
+function buildAccessCard(f) {
+  const val = values[f.id] || '';
+  const parts = val.split('||');
+  const tem = parts[0];
+  const func = tem === 'SIM' ? (parts[1]||'') : '';
+  const obs = tem === 'SIM' ? (parts[2]||'') : (parts[1]||'');
+  const name = f._name || (f.label.includes(':') ? f.label.split(':').pop().trim() : f.label);
+  const color = fieldColor(f.label);
+  const initials = fieldInitials(name);
+  const selSim = tem === 'SIM', selNao = tem === 'NAO' || tem === 'NÃO';
+  const cardCls = selSim ? 'access-card sel-sim' : selNao ? 'access-card sel-nao' : 'access-card';
+  const showFunciona = selSim;
+  const showObs = selNao || func === 'NÃO';
+
+  let extraHtml = '';
+  if (showFunciona) {
+    extraHtml = `<div class="extra-label">Funciona?</div>
+      <div class="pill-group" style="margin-bottom:8px">
+        <div class="pill-opt"><input type="radio" name="func_${f.id}" value="SIM" id="fsim_${f.id}" ${func==='SIM'?'checked':''} onchange="onFuncionaChange('${f.id}')"><label for="fsim_${f.id}">SIM</label></div>
+        <div class="pill-opt"><input type="radio" name="func_${f.id}" value="NÃO" id="fnao_${f.id}" ${func==='NÃO'?'checked':''} onchange="onFuncionaChange('${f.id}')"><label for="fnao_${f.id}">NÃO</label></div>
+      </div>`;
   }
-
-  function funcionaChange(radio, fieldId) {
-    document.getElementById(`obs_${fieldId}`).style.display = radio.value === 'NÃO' ? 'block' : 'none';
-  }
-
-  function renderAcesso(f, val) {
-    const req = f.required ? '<span class="req">*</span>' : '';
-    const parts = val ? val.split('||') : [];
-    const temAcesso = parts[0] || '';
-    const funciona = parts[1] || '';
-    const obs = (parts[0] === 'SIM' ? parts[2] : parts[1]) || '';
-
-    const showFunciona = temAcesso === 'SIM';
-    const showObs = temAcesso === 'NÃO' || funciona === 'NÃO';
-
-    return `<div class="acesso-card">
-      <div class="acesso-label">${esc(f.label)} ${req}</div>
-      <div>
-        <div class="acesso-sub-label">Tem acesso?</div>
-        <div class="pill-group">
-          ${['SIM','NÃO'].map(o => `
-            <div class="pill-opt">
-              <input type="radio" name="ac_${f.id}" id="ac_${f.id}_${o}" value="${o}" ${temAcesso===o?'checked':''} onchange="acessoChange(this,'${f.id}')">
-              <label for="ac_${f.id}_${o}">${o}</label>
-            </div>`).join('')}
-        </div>
-      </div>
-      <div id="funciona_${f.id}" class="acesso-sub" style="display:${showFunciona?'block':'none'}">
-        <div class="acesso-sub-label">Funciona?</div>
-        <div class="pill-group">
-          ${['SIM','NÃO'].map(o => `
-            <div class="pill-opt">
-              <input type="radio" name="func_${f.id}" id="func_${f.id}_${o}" value="${o}" ${funciona===o?'checked':''} onchange="funcionaChange(this,'${f.id}')">
-              <label for="func_${f.id}_${o}">${o}</label>
-            </div>`).join('')}
-        </div>
-      </div>
-      <div id="obs_${f.id}" class="obs-area" style="display:${showObs?'block':'none'}">
-        <div class="acesso-sub-label" style="margin-top:12px">Observação</div>
-        <textarea class="form-textarea" id="obstext_${f.id}" placeholder="Descreva o que acontece...">${esc(obs)}</textarea>
-      </div>
+  if (showObs || showFunciona) {
+    extraHtml += `<div id="obs_${f.id}" style="${showObs?'':'display:none'}">
+      <div class="extra-label">Observação</div>
+      <textarea class="extra-textarea" id="obstext_${f.id}" placeholder="Descreva o que acontece..." oninput="onObsChange('${f.id}')">${esc(obs)}</textarea>
     </div>`;
   }
 
-  async function load() {
-    const res = await fetch(`/api/forms/${formId}`, { headers: { Authorization: 'Bearer ' + token } });
-    const data = await res.json();
-    const el = document.getElementById('content');
+  return `<div class="${cardCls}" id="card_${f.id}">
+    <div class="access-check">&#10003;</div>
+    <div class="access-icon" style="background:${color}">${initials}</div>
+    <div class="access-name">${esc(name)}</div>
+    <div class="access-desc"></div>
+    <div class="access-btns">
+      <button class="access-btn ${selSim?'sel-sim':''}" onclick="selectAcesso('${f.id}','SIM')">&#10003; Possui acesso</button>
+      <button class="access-btn ${selNao?'sel-nao':''}" onclick="selectAcesso('${f.id}','NAO')">&#8853; Solicitar</button>
+    </div>
+    <div class="access-extra ${showFunciona||showObs?'show':''}" id="extra_${f.id}">${extraHtml}</div>
+  </div>`;
+}
 
-    if (!data.success) {
-      el.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
-      return;
-    }
+function selectAcesso(fieldId, choice) {
+  const prev = (values[fieldId]||'').split('||')[0];
+  if ((choice==='SIM'&&prev==='SIM')||(choice==='NAO'&&(prev==='NAO'||prev==='NÃO'))) {
+    values[fieldId] = '';
+  } else if (choice === 'SIM') {
+    values[fieldId] = 'SIM||';
+  } else {
+    values[fieldId] = 'NAO||';
+  }
+  refreshCard(fieldId);
+  renderRightPanel();
+  updateCatCount(fieldId);
+}
 
-    formData = data.form;
-    const already = formData.myResponse;
-    const values = already ? already.values : {};
+function onFuncionaChange(fieldId) {
+  const func = document.querySelector(`input[name="func_${fieldId}"]:checked`)?.value || '';
+  const obs = document.getElementById(`obstext_${fieldId}`)?.value || '';
+  values[fieldId] = `SIM||${func}${func==='NÃO'?'||'+obs:''}`;
+  const obsEl = document.getElementById(`obs_${fieldId}`);
+  if (obsEl) obsEl.style.display = func==='NÃO' ? '' : 'none';
+  renderRightPanel();
+}
 
-    document.title = `${formData.title} — SBK Forms`;
+function onObsChange(fieldId) {
+  const parts = (values[fieldId]||'').split('||');
+  const obs = document.getElementById(`obstext_${fieldId}`)?.value || '';
+  values[fieldId] = parts[0]==='SIM' ? `SIM||${parts[1]||''}||${obs}` : `NAO||${obs}`;
+}
 
-    const fieldsHtml = formData.fields.map(f => {
-      const req = f.required ? '<span class="req"> *</span>' : '';
-      const val = values[f.id] || '';
-
-      if (f.field_type === 'acesso') {
-        return renderAcesso(f, val);
-      }
-      if (f.field_type === 'text') {
-        return `<div class="field-block">
-          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
-          <input class="form-input" type="text" id="f${f.id}" data-id="${f.id}" data-type="text" value="${esc(val)}">
-        </div>`;
-      }
-      if (f.field_type === 'textarea') {
-        return `<div class="field-block">
-          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
-          <textarea class="form-textarea" id="f${f.id}" data-id="${f.id}" data-type="textarea">${esc(val)}</textarea>
-        </div>`;
-      }
-      if (f.field_type === 'radio') {
-        const opts = f.options || ['Sim', 'Não'];
-        return `<div class="field-block">
-          <span class="field-label-text">${esc(f.label)}${req}</span>
-          <div class="pill-group">${opts.map(o => `
-            <div class="pill-opt">
-              <input type="radio" name="f${f.id}" id="fopt_${f.id}_${esc(o)}" data-id="${f.id}" data-type="radio" value="${esc(o)}" ${val===o?'checked':''}>
-              <label for="fopt_${f.id}_${esc(o)}">${esc(o)}</label>
-            </div>`).join('')}
-          </div>
-        </div>`;
-      }
-      if (f.field_type === 'checkbox') {
-        const opts = f.options || [];
-        const checked = val ? val.split('||') : [];
-        return `<div class="field-block">
-          <span class="field-label-text">${esc(f.label)}${req}</span>
-          <div class="check-group">${opts.map(o => `
-            <label class="check-opt">
-              <input type="checkbox" data-id="${f.id}" data-type="checkbox" value="${esc(o)}" ${checked.includes(o)?'checked':''}>
-              ${esc(o)}
-            </label>`).join('')}
-          </div>
-        </div>`;
-      }
-      if (f.field_type === 'select') {
-        const opts = f.options || [];
-        return `<div class="field-block">
-          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
-          <select class="form-select" id="f${f.id}" data-id="${f.id}" data-type="select">
-            <option value="">Selecione...</option>
-            ${opts.map(o => `<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}
-          </select>
-        </div>`;
-      }
-      return '';
-    }).join('');
-
-    el.innerHTML = `
-      ${already ? `<div class="alert alert-info">Você já enviou este formulário em ${new Date(already.submitted_at).toLocaleString('pt-BR')}. Você pode reenviar para atualizar suas respostas.</div>` : ''}
-      <div class="page-title">${esc(formData.title)}</div>
-      ${formData.description ? `<div class="page-sub">${esc(formData.description)}</div>` : '<div style="margin-bottom:24px"></div>'}
-      <div id="form-alert" style="display:none" class="alert"></div>
-      <div class="card" style="padding:28px 28px">
-        <form id="the-form" onsubmit="submitForm(event)">
-          ${fieldsHtml}
-          <div style="margin-top:16px">
-            <button class="btn btn-primary" type="submit" id="submit-btn" style="padding:11px 28px">Enviar respostas</button>
-          </div>
-        </form>
+function refreshCard(fieldId) {
+  const val = values[fieldId]||'';
+  const parts = val.split('||');
+  const tem = parts[0], func = tem==='SIM'?(parts[1]||''):'', obs = tem==='SIM'?(parts[2]||''):(parts[1]||'');
+  const card = document.getElementById(`card_${fieldId}`);
+  if (!card) return;
+  const selSim = tem==='SIM', selNao = tem==='NAO'||tem==='NÃO';
+  card.className = selSim?'access-card sel-sim':selNao?'access-card sel-nao':'access-card';
+  const btns = card.querySelectorAll('.access-btn');
+  if (btns[0]) btns[0].className = 'access-btn'+(selSim?' sel-sim':'');
+  if (btns[1]) btns[1].className = 'access-btn'+(selNao?' sel-nao':'');
+  const extra = document.getElementById(`extra_${fieldId}`);
+  if (!extra) return;
+  const showFunciona = selSim, showObs = selNao || func==='NÃO';
+  extra.classList.toggle('show', showFunciona||showObs);
+  if (!selSim && !selNao) { extra.innerHTML=''; return; }
+  let html='';
+  if (showFunciona) {
+    html += `<div class="extra-label">Funciona?</div>
+      <div class="pill-group" style="margin-bottom:8px">
+        <div class="pill-opt"><input type="radio" name="func_${fieldId}" value="SIM" id="fsim_${fieldId}" ${func==='SIM'?'checked':''} onchange="onFuncionaChange('${fieldId}')"><label for="fsim_${fieldId}">SIM</label></div>
+        <div class="pill-opt"><input type="radio" name="func_${fieldId}" value="NÃO" id="fnao_${fieldId}" ${func==='NÃO'?'checked':''} onchange="onFuncionaChange('${fieldId}')"><label for="fnao_${fieldId}">NÃO</label></div>
       </div>`;
   }
+  if (showFunciona || showObs) {
+    html += `<div id="obs_${fieldId}" style="${showObs?'':'display:none'}">
+      <div class="extra-label">Observação</div>
+      <textarea class="extra-textarea" id="obstext_${fieldId}" placeholder="Descreva o que acontece..." oninput="onObsChange('${fieldId}')">${esc(obs)}</textarea>
+    </div>`;
+  } else if (selNao) {
+    html += `<div><div class="extra-label">Observação</div>
+      <textarea class="extra-textarea" id="obstext_${fieldId}" placeholder="Descreva o que acontece..." oninput="onObsChange('${fieldId}')">${esc(obs)}</textarea></div>`;
+  }
+  extra.innerHTML = html;
+}
 
-  async function submitForm(e) {
-    e.preventDefault();
-    const alertEl = document.getElementById('form-alert');
-    const btn = document.getElementById('submit-btn');
-    alertEl.style.display = 'none';
+function updateCatCount(fieldId) {
+  const card = document.getElementById(`card_${fieldId}`);
+  if (!card) return;
+  const grid = card.closest('.access-grid');
+  if (!grid) return;
+  const block = grid.closest('.cat-block');
+  if (!block) return;
+  const all = block.querySelectorAll('.access-card').length;
+  const sel = block.querySelectorAll('.access-card.sel-sim, .access-card.sel-nao').length;
+  const badge = block.querySelector('[id^="catcnt_"]');
+  if (badge) badge.textContent = `${sel} de ${all} selecionados`;
+}
 
-    const values = {};
-    let valid = true;
-
-    formData.fields.forEach(f => {
-      if (f.field_type === 'acesso') {
-        const acesso = document.querySelector(`input[name="ac_${f.id}"]:checked`);
-        if (f.required && !acesso) { valid = false; return; }
-        if (acesso) {
-          if (acesso.value === 'SIM') {
-            const funciona = document.querySelector(`input[name="func_${f.id}"]:checked`);
-            if (f.required && !funciona) { valid = false; return; }
-            const obs = document.getElementById(`obstext_${f.id}`)?.value || '';
-            values[f.id] = `SIM||${funciona?.value || ''}${funciona?.value === 'NÃO' ? '||' + obs : ''}`;
-          } else {
-            const obs = document.getElementById(`obstext_${f.id}`)?.value || '';
-            values[f.id] = `NÃO||${obs}`;
-          }
-        }
-      } else if (f.field_type === 'radio') {
-        const checked = document.querySelector(`input[name="f${f.id}"]:checked`);
-        if (f.required && !checked) { valid = false; return; }
-        if (checked) values[f.id] = checked.value;
-      } else if (f.field_type === 'checkbox') {
-        const checked = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)].map(i => i.value);
-        if (f.required && !checked.length) { valid = false; return; }
-        values[f.id] = checked;
-      } else {
-        const el = document.querySelector(`[data-id="${f.id}"]`);
-        if (!el) return;
-        if (f.required && !el.value.trim()) { valid = false; return; }
-        values[f.id] = el.value;
-      }
+// Review step
+function buildReviewStep() {
+  let html = `<div class="section-card"><div class="section-head"><div class="section-title">Revisão das respostas</div></div>`;
+  if (regularFields.length) {
+    html += `<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:700;color:#4A545E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Informações do Colaborador</div>`;
+    regularFields.forEach(f => {
+      const v = values[f.id]||'';
+      html += `<div class="review-row"><div class="review-label">${esc(f.label)}</div>
+        <div class="review-value">${esc(v.replace('||',', '))||'<span style="color:#9ca3af">Não informado</span>'}</div></div>`;
     });
+    html += `</div>`;
+  }
+  if (acessoFields.length) {
+    html += `<div><div style="font-size:11px;font-weight:700;color:#4A545E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Acessos selecionados</div>`;
+    acessoFields.forEach(f => {
+      const v = values[f.id]||'';
+      const p = v.split('||'), tem = p[0];
+      const name = f.label.includes(':') ? f.label.split(':').pop().trim() : f.label;
+      let disp = '<span style="color:#9ca3af">Não respondido</span>';
+      if (tem==='SIM') disp = `<span style="color:#16a34a;font-weight:600">Possui acesso</span>${p[1]?' / Funciona: '+esc(p[1]):''}${p[2]?' / Obs: '+esc(p[2]):''}`;
+      else if (tem==='NAO'||tem==='NÃO') disp = `<span style="color:#ea580c;font-weight:600">Solicitar acesso</span>${p[1]?' / Obs: '+esc(p[1]):''}`;
+      html += `<div class="review-row"><div class="review-label">${esc(name)}</div><div class="review-value">${disp}</div></div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
 
-    if (!valid) {
-      alertEl.textContent = 'Preencha todos os campos obrigatórios.';
-      alertEl.className = 'alert alert-error';
-      alertEl.style.display = 'block';
-      alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+// Navigation
+function goStep(dir) {
+  if (currentStep === 1 && regularFields.length) collectRegular();
+  if (dir > 0) {
+    if (currentStep === 1 && regularFields.length) {
+      const miss = regularFields.filter(f=>f.required&&!values[f.id]?.trim());
+      if (miss.length) { showAlert('Preencha todos os campos obrigatórios.'); return; }
     }
-
-    btn.textContent = 'Enviando...';
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`/api/forms/${formId}/respond`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ values })
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
-
-      alertEl.textContent = 'Respostas enviadas com sucesso!';
-      alertEl.className = 'alert alert-success';
-      alertEl.style.display = 'block';
-      btn.textContent = 'Enviado';
-      setTimeout(() => window.location.href = '/dashboard', 1500);
-    } catch (err) {
-      alertEl.textContent = err.message;
-      alertEl.className = 'alert alert-error';
-      alertEl.style.display = 'block';
-      btn.textContent = 'Enviar respostas';
-      btn.disabled = false;
+    const isAcessoStep = (totalSteps===3&&currentStep===2)||(totalSteps===2&&currentStep===1);
+    if (isAcessoStep) {
+      const miss = acessoFields.filter(f=>f.required&&!values[f.id]);
+      if (miss.length) { showAlert('Responda todos os campos de acesso obrigatórios.'); return; }
     }
   }
+  currentStep = Math.max(1, Math.min(totalSteps, currentStep+dir));
+  renderStep();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
-  load();
+function showAlert(msg, type='error') {
+  const el = document.getElementById('form-alert');
+  if (!el) return;
+  el.textContent = msg; el.className = `alert alert-${type}`; el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+async function saveDraft() {
+  if (currentStep===1&&regularFields.length) collectRegular();
+  const as = document.getElementById('autosave');
+  try {
+    await fetch(`/api/forms/${formId}/respond`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+      body: JSON.stringify({values})
+    });
+    as.style.display='flex';
+    setTimeout(()=>as.style.display='none', 3000);
+  } catch(e){}
+}
+
+async function submitForm() {
+  if (currentStep===1&&regularFields.length) collectRegular();
+  const miss = formData.fields.filter(f=>f.required&&!values[f.id]);
+  if (miss.length) { showAlert('Preencha todos os campos obrigatórios.'); return; }
+  const btn = document.getElementById('submit-btn');
+  if (btn) { btn.textContent='Enviando...'; btn.disabled=true; }
+  try {
+    const res = await fetch(`/api/forms/${formId}/respond`, {
+      method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+      body: JSON.stringify({values})
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error);
+    showAlert('Respostas enviadas com sucesso!','success');
+    setTimeout(()=>window.location.href='/dashboard',1500);
+  } catch(e) {
+    showAlert(e.message);
+    if (btn) { btn.textContent='Enviar'; btn.disabled=false; }
+  }
+}
+
+// Right panel
+function renderRightPanel() {
+  const labels = STEP_LABELS[totalSteps]||['Preenchimento'];
+  const subs = STEP_SUBS[totalSteps]||[''];
+  let html = '';
+  labels.forEach((l,i) => {
+    const idx=i+1, state=idx<currentStep?'done':idx===currentStep?'active':'';
+    html += `<div class="step-row ${state}">
+      <div class="step-circle">${idx<currentStep?'&#10003;':idx}</div>
+      <div class="step-info"><div class="step-nm">${l}</div><div class="step-sb">${subs[i]||''}</div></div>
+    </div>`;
+    if (i<labels.length-1) html += `<div class="step-line ${idx<currentStep?'done':''}"></div>`;
+  });
+  document.getElementById('rp-steps').innerHTML = html;
+
+  if (!acessoFields.length) return;
+  const groups = groupAcessoFields(acessoFields);
+  const total = acessoFields.filter(f=>values[f.id]).length;
+  const cnt = document.getElementById('rp-cnt');
+  if (cnt) cnt.textContent = `${total} acesso${total!==1?'s':''}`;
+
+  let sumHtml = '', any = false;
+  Object.entries(groups).forEach(([cat,fields]) => {
+    const sel = fields.filter(f=>values[f.id]);
+    if (!sel.length) return;
+    any = true;
+    sumHtml += `<div class="sum-cat"><div class="sum-cat-nm">${esc(cat)}</div>`;
+    sel.forEach(f=>{
+      const p=(values[f.id]||'').split('||'), tem=p[0], isSim=tem==='SIM';
+      sumHtml += `<div class="sum-item"><span>${esc(f._name||f.label)}</span>
+        <span class="sum-tag ${isSim?'sim':'nao'}">${isSim?'Possui acesso':'Solicitar acesso'}</span></div>`;
+    });
+    sumHtml += `</div>`;
+  });
+  const body = document.getElementById('rp-sum-body');
+  if (body) body.innerHTML = any ? sumHtml : '<div class="sum-empty">Nenhum acesso selecionado.</div>';
+}
+
+const STEP_LABELS = { 3:['Informações básicas','Acessos necessários','Revisão e envio'], 2:['Acessos necessários','Revisão e envio'], 1:['Preenchimento'] };
+const STEP_SUBS = { 3:['Dados do colaborador','Seleção de sistemas e acessos','Revise suas seleções'], 2:['Seleção de sistemas e acessos','Revise suas seleções'], 1:['Preencha e envie'] };
+
+load();
 </script>
 </body>
 </html>

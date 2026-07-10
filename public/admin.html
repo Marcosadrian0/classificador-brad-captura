@@ -7,7 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; display: flex; min-height: 100vh; }
+html, body { height: 100%; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; overflow-x: hidden; }
 
 /* ── SIDEBAR ── */
 .sidebar {
@@ -67,8 +68,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
 .sidebar.collapsed .btn-collapse span { display: none; }
 
 /* ── MAIN ── */
-.main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .2s; }
-.sidebar.collapsed ~ .main { margin-left: 64px; }
+.main { margin-left: 220px; width: calc(100vw - 220px); display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .2s, width .2s; overflow-x: hidden; }
+.sidebar.collapsed ~ .main { margin-left: 64px; width: calc(100vw - 64px); }
 
 .topbar {
   height: 60px; background: #fff; border-bottom: 1px solid #e8eaed;
@@ -103,14 +104,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
 .panel.active { display: flex; flex: 1; }
 
 /* ── DASHBOARD ── */
-#panel-dashboard { gap: 0; }
-.dash-main { flex: 1; padding: 28px 24px; overflow-y: auto; min-width: 0; }
-.dash-right { width: 300px; min-width: 300px; background: #fff; border-left: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; }
+#panel-dashboard { gap: 0; overflow: hidden; }
+.dash-main { flex: 1; padding: 28px 24px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
+.dash-right { width: 280px; flex-shrink: 0; background: #fff; border-left: 1px solid #e8eaed; padding: 24px 20px; overflow-y: auto; overflow-x: hidden; }
 
-.page-greeting { font-size: 22px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
-.page-sub { font-size: 13px; color: #4A545E; font-weight: 300; margin-bottom: 24px; }
+.page-greeting { font-size: 20px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: #4A545E; font-weight: 300; margin-bottom: 20px; }
 
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .stat-card {
   background: #fff; border-radius: 12px; padding: 18px; border: 1px solid #e8eaed;
   display: flex; flex-direction: column; gap: 8px;
@@ -162,9 +163,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
   width: 40px; height: 40px; border-radius: 10px; background: #dcfce7;
   display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
 }
-.form-row-info { flex: 1; min-width: 0; }
+.form-row-info { flex: 1; min-width: 0; overflow: hidden; }
 .form-row-title { font-size: 13px; font-weight: 600; color: #1a2332; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.form-row-desc { font-size: 11px; color: #4A545E; font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.form-row-desc { font-size: 11px; color: #4A545E; font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; max-width: 100%; }
 .form-row-meta { display: flex; align-items: center; gap: 14px; margin-top: 6px; flex-wrap: wrap; }
 .meta-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #4A545E; }
 .badge-status {
