@@ -16,5 +16,14 @@
     "password_hash": "$2a$10$kU4Ek7AWU44Mii/fAufjb.1WHyHx08FQZfgm8GEgOVmutBbTjf5Wy",
     "role": "user",
     "created_at": "2026-07-10T18:32:14.266Z"
+  },
+  {
+    "id": "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
+    "name": "Alice Teixeira",
+    "username": "alice.teixeira",
+    "email": "alice.teixeira",
+    "password_hash": "$2a$10$036Y2jiuW93x9i4qyw2DieyanHlLEgG0nHm1ksGbW0yiJh9jsM96K",
+    "role": "user",
+    "created_at": "2026-07-10T19:51:19.075Z"
   }
 ]
