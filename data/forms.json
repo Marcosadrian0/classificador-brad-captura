@@ -121,5 +121,74 @@
     "assigned_user_ids": [
       "a802ba16-d841-46be-89e7-c72e0cd34115"
     ]
+  },
+  {
+    "id": "20fabfb8-0204-443d-931b-6e67b0913d18",
+    "title": "INFORMAÇÕES PARA SOLICITAÇÃO DE ACESSOS",
+    "description": "Preencha as informações necessárias para a solicitação de acessos do colaborador junto ao banco. Os dados informados serão utilizados para identificar os acessos já existentes, as permissões pendentes e acompanhar o processo de liberação.",
+    "is_active": true,
+    "created_by": "aa9a4c63-3bb9-48fd-a1d8-3ff45fa463a3",
+    "created_at": "2026-07-10T19:27:22.775Z",
+    "fields": [
+      {
+        "id": "a814350b-cdd4-4b30-b89b-c43cf5f408a9",
+        "label": "NOME COMPLETO",
+        "field_type": "textarea",
+        "options": null,
+        "required": true,
+        "order_index": 0
+      },
+      {
+        "id": "9b00778a-37c7-483a-8f49-54412935feb2",
+        "label": "CPF",
+        "field_type": "textarea",
+        "options": null,
+        "required": true,
+        "order_index": 1
+      },
+      {
+        "id": "602f821f-26f0-4eeb-8ba0-3993a70e747a",
+        "label": "DATA DE  NASCIMENTO",
+        "field_type": "textarea",
+        "options": null,
+        "required": true,
+        "order_index": 2
+      },
+      {
+        "id": "6691d6a4-4fcc-44fc-84ca-5f7cfbafc4cd",
+        "label": "NATURALIDADE",
+        "field_type": "textarea",
+        "options": null,
+        "required": true,
+        "order_index": 3
+      },
+      {
+        "id": "30bd7848-4a3c-4721-b0b1-d08a2331e3eb",
+        "label": "MÃE",
+        "field_type": "textarea",
+        "options": null,
+        "required": true,
+        "order_index": 4
+      },
+      {
+        "id": "6d0c3216-9ea8-4c5c-b78a-a2d490590cdb",
+        "label": "TELEFONE",
+        "field_type": "textarea",
+        "options": null,
+        "required": false,
+        "order_index": 5
+      },
+      {
+        "id": "ae47c5f3-e59e-42ff-9072-b1db39d060ac",
+        "label": "E-MAIL",
+        "field_type": "textarea",
+        "options": null,
+        "required": false,
+        "order_index": 6
+      }
+    ],
+    "assigned_user_ids": [
+      "a802ba16-d841-46be-89e7-c72e0cd34115"
+    ]
   }
 ]
