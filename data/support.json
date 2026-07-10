@@ -19,12 +19,5 @@
     "sent_at": "2026-07-10T19:50:35.402Z",
     "from": "admin",
     "read": false
-  },
-  {
-    "id": "bee23cb3-c8c5-4c3a-ac43-10221d22e770",
-    "from": "system",
-    "target_user_id": "a802ba16-d841-46be-89e7-c72e0cd34115",
-    "concluded": true,
-    "sent_at": "2026-07-10T22:45:07.147Z"
   }
 ]
