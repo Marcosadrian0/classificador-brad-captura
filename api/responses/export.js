@@ -32,6 +32,13 @@ module.exports = async (req, res) => {
       new Date(r.submitted_at).toLocaleString('pt-BR'),
       ...fields.map(f => {
         const v = r.values[f.id] || '';
+        if (f.field_type === 'acesso' && v.includes('||')) {
+          const parts = v.split('||');
+          if (parts[0] === 'SIM') {
+            return parts[1] ? `Acesso: SIM / Funciona: ${parts[1]}${parts[2] ? ' / Obs: '+parts[2] : ''}` : 'Acesso: SIM';
+          }
+          return `Acesso: NAO${parts[1] ? ' / Obs: '+parts[1] : ''}`;
+        }
         return v.includes('||') ? v.split('||').join(', ') : v;
       })
     ]);

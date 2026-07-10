@@ -245,6 +245,7 @@ function addField(existing=null) {
         <option value="radio" ${type==='radio'?'selected':''}>Escolha única</option>
         <option value="checkbox" ${type==='checkbox'?'selected':''}>Múltipla escolha</option>
         <option value="select" ${type==='select'?'selected':''}>Lista suspensa</option>
+        <option value="acesso" ${type==='acesso'?'selected':''}>Acesso a sistema</option>
       </select>
       <input class="form-input" id="fl-${idx}" placeholder="Rótulo do campo" value="${esc(existing?.label||'')}" style="flex:1">
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#023631;cursor:pointer;flex-shrink:0">
@@ -267,6 +268,7 @@ function onTypeChange(idx) {
     optEl.style.display = 'flex';
   } else {
     optEl.style.display = 'none';
+    optEl.innerHTML = '';
   }
 }
 
@@ -287,9 +289,10 @@ function collectFields() {
     const type = document.getElementById(`ft-${idx}`).value;
     const label = document.getElementById(`fl-${idx}`).value.trim();
     const required = document.getElementById(`fr-${idx}`).checked;
-    const options = [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
-      .map(i => i.value.trim()).filter(Boolean);
-    return { label, type, required, options: options.length ? options : null };
+    const options = type === 'acesso' ? null :
+      [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
+        .map(i => i.value.trim()).filter(Boolean);
+    return { label, type, required, options: options?.length ? options : null };
   }).filter(f => f.label);
 }
 
@@ -445,7 +448,18 @@ async function loadResponses() {
       <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
       ${fields.map(f => {
         const v = r.values[f.id] || '';
-        return `<td>${esc(v.includes('||') ? v.split('||').join(', ') : v)}</td>`;
+        let display = v;
+        if (f.field_type === 'acesso' && v.includes('||')) {
+          const parts = v.split('||');
+          if (parts[0] === 'SIM') {
+            display = parts[1] ? `Acesso: SIM / Funciona: ${parts[1]}${parts[2] ? ' / Obs: '+parts[2] : ''}` : 'Acesso: SIM';
+          } else {
+            display = `Acesso: NAO${parts[1] ? ' / Obs: '+parts[1] : ''}`;
+          }
+        } else if (v.includes('||')) {
+          display = v.split('||').join(', ');
+        }
+        return `<td>${esc(display)}</td>`;
       }).join('')}
     </tr>`).join('')}
     </tbody></table></div></div>`;
