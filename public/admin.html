@@ -532,11 +532,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
         </div>
       </div>
       <div class="resp-select-card">
-        <div class="form-group" style="margin:0">
-          <label class="form-label">Selecionar formulário</label>
-          <select class="form-select" id="resp-form-select" onchange="loadResponses()">
-            <option value="">Escolha um formulário...</option>
-          </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Selecionar formulário</label>
+            <select class="form-select" id="resp-form-select" onchange="loadResponses()">
+              <option value="">Escolha um formulário...</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Filtrar por usuário</label>
+            <select class="form-select" id="resp-user-filter" onchange="applyUserFilter()">
+              <option value="">Todos os usuários</option>
+            </select>
+          </div>
         </div>
       </div>
       <div id="responses-area">
@@ -1180,26 +1188,59 @@ async function loadResponsesFormList() {
     (data.forms||[]).map(f => `<option value="${f.id}">${esc(f.title)} (${f.response_count} respostas)</option>`).join('');
 }
 
+let respAllData = null;
+
 async function loadResponses() {
   const formId = document.getElementById('resp-form-select').value;
   const area = document.getElementById('responses-area');
-  if (!formId) { area.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>`; return; }
+  const userFilter = document.getElementById('resp-user-filter');
+  respAllData = null;
+
+  if (!formId) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>`;
+    userFilter.innerHTML = '<option value="">Todos os usuários</option>';
+    return;
+  }
   area.innerHTML = '<div class="empty-state"><p>Carregando...</p></div>';
+
   const data = await api(`/api/responses?formId=${formId}`);
   if (!data.success) { area.innerHTML = `<div class="alert alert-error">${data.error}</div>`; return; }
-  const { fields, responses, assigned } = data;
+  respAllData = data;
+
+  // Populate user filter from assigned users list
+  const { assigned } = data;
+  userFilter.innerHTML = '<option value="">Todos os usuários</option>' +
+    (assigned || []).map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('');
+
+  renderResponsesTable();
+}
+
+function applyUserFilter() { renderResponsesTable(); }
+
+function renderResponsesTable() {
+  const area = document.getElementById('responses-area');
+  if (!respAllData) return;
+  const { fields, responses, assigned } = respAllData;
+  const formId = document.getElementById('resp-form-select').value;
+  const userId = document.getElementById('resp-user-filter').value;
+
+  const filtered = userId ? responses.filter(r => r.user_id === userId || String(r.user_id) === userId) : responses;
   const respondedIds = new Set(responses.map(r => r.user_id));
   const pending = assigned.filter(u => !respondedIds.has(u.id) && !respondedIds.has(String(u.id)));
+
   let html = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
     <a href="/api/responses/export?formId=${formId}" class="btn-new" target="_blank" style="text-decoration:none">&#11123; Exportar CSV</a>
     <span style="font-size:12px;color:#4A545E">${responses.length} resposta(s) de ${assigned.length} atribuídos</span>
   </div>`;
-  if (pending.length) html += `<div class="alert alert-info" style="margin-bottom:16px">Sem resposta: ${pending.map(u=>`<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
-  if (!responses.length) { html += `<div class="empty-state"><div class="empty-icon">&#128203;</div><p>Nenhuma resposta ainda.</p></div>`; area.innerHTML = html; return; }
+  if (!userId && pending.length) html += `<div class="alert alert-info" style="margin-bottom:16px">Sem resposta: ${pending.map(u=>`<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
+  if (!filtered.length) {
+    html += `<div class="empty-state"><div class="empty-icon">&#128203;</div><p>${userId ? 'Nenhuma resposta deste usuário.' : 'Nenhuma resposta ainda.'}</p></div>`;
+    area.innerHTML = html; return;
+  }
   const headers = ['Usuário', 'Email', 'Enviado em', ...fields.map(f => f.label)];
   html += `<div class="table-card"><div class="table-wrap"><table>
     <thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
-    <tbody>${responses.map(r=>`<tr>
+    <tbody>${filtered.map(r=>`<tr>
       <td><strong>${esc(r.user_name)}</strong></td>
       <td>${esc(r.user_email)}</td>
       <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
@@ -1401,6 +1442,11 @@ function renderSupportThreads() {
   // Group by user
   const byUser = {};
   supportMessages.forEach(m => {
+    if (m.from === 'system') {
+      // Register concluded state under target_user_id so thread appears
+      if (m.target_user_id && !byUser[m.target_user_id]) return;
+      return;
+    }
     const uid = m.from === 'admin' ? m.target_user_id : m.user_id;
     const uname = m.from === 'admin' ? m.target_user_name : m.user_name;
     if (!byUser[uid]) byUser[uid] = { name: uname, msgs: [] };
@@ -1411,35 +1457,81 @@ function renderSupportThreads() {
     return;
   }
   el.innerHTML = Object.entries(byUser).map(([uid, u]) => {
-    const last = u.msgs[u.msgs.length-1];
+    const visibleMsgs = u.msgs.filter(m => m.from !== 'system');
+    const last = visibleMsgs[visibleMsgs.length-1] || u.msgs[u.msgs.length-1];
     const av = (u.name||'U').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
-    const preview = last.message.length > 32 ? last.message.slice(0,32)+'...' : last.message;
+    const preview = last?.message ? (last.message.length > 32 ? last.message.slice(0,32)+'...' : last.message) : '';
     const active = uid === activeThreadUserId ? ' active' : '';
-    return `<div class="thread-item${active}" onclick="openThread('${uid}','${esc(u.name)}')">
-      <div class="thread-av">${av}</div>
+    const concluded = isThreadConcluded(uid);
+    return `<div class="thread-item${active}" onclick="openThread('${uid}','${esc(u.name)}')" style="${concluded?'opacity:.55':''}">
+      <div class="thread-av" style="${concluded?'background:#9ca3af':''}">${av}</div>
       <div class="thread-info">
-        <div class="thread-name">${esc(u.name)}</div>
+        <div class="thread-name">${esc(u.name)}${concluded?' <span style="font-size:9px;background:#dcfce7;color:#16a34a;border-radius:4px;padding:1px 5px;font-weight:700;vertical-align:middle">OK</span>':''}</div>
         <div class="thread-preview">${esc(preview)}</div>
       </div>
     </div>`;
   }).join('');
 }
 
+function isThreadConcluded(userId) {
+  return supportMessages.some(m => m.from === 'system' && m.target_user_id === userId && m.concluded);
+}
+
 function openThread(userId, userName) {
   activeThreadUserId = userId;
   activeThreadUserName = userName;
-  document.getElementById('support-chat-header').innerHTML =
-    `<div style="font-size:13px;font-weight:700;color:#1a2332">${esc(userName)}</div>`;
+  renderSupportHeader();
   renderSupportChat();
   renderSupportThreads();
+}
+
+function renderSupportHeader() {
+  const concluded = isThreadConcluded(activeThreadUserId);
+  document.getElementById('support-chat-header').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1a2332">${esc(activeThreadUserName)}</div>
+        ${concluded ? '<div style="font-size:11px;color:#16a34a;font-weight:600;margin-top:2px">Concluido</div>' : ''}
+      </div>
+      ${concluded
+        ? `<button onclick="reopenThread()" style="height:32px;padding:0 14px;background:#f4f6f9;border:1px solid #e8eaed;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#1a2332;font-family:inherit">Reabrir</button>`
+        : `<button onclick="concludeThread()" style="height:32px;padding:0 14px;background:#023631;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#fff;font-family:inherit">Concluir</button>`
+      }
+    </div>`;
+}
+
+async function concludeThread() {
+  if (!activeThreadUserId) return;
+  await fetch('/api/support', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ target_user_id: activeThreadUserId, concluded: true })
+  });
+  await loadSupportPanel();
+  renderSupportHeader();
+  renderSupportChat();
+}
+
+async function reopenThread() {
+  if (!activeThreadUserId) return;
+  await fetch('/api/support', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ target_user_id: activeThreadUserId, concluded: false })
+  });
+  await loadSupportPanel();
+  renderSupportHeader();
+  renderSupportChat();
 }
 
 function renderSupportChat() {
   const el = document.getElementById('support-chat-msgs');
   if (!el || !activeThreadUserId) return;
   const thread = supportMessages.filter(m =>
-    (m.from !== 'admin' && m.user_id === activeThreadUserId) ||
-    (m.from === 'admin' && m.target_user_id === activeThreadUserId)
+    m.from !== 'system' && (
+      (m.from !== 'admin' && m.user_id === activeThreadUserId) ||
+      (m.from === 'admin' && m.target_user_id === activeThreadUserId)
+    )
   );
   if (!thread.length) { el.innerHTML = '<div style="font-size:12px;color:#9ca3af;text-align:center;padding:20px">Sem mensagens.</div>'; return; }
   el.innerHTML = thread.map(m => {

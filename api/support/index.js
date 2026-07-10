@@ -37,6 +37,28 @@ module.exports = async (req, res) => {
       return res.json({ success: true, messages: thread });
     }
 
+    if (req.method === 'PATCH') {
+      // Admin marks thread as concluded
+      const admin = requireAdmin(req);
+      const { target_user_id, concluded } = req.body || {};
+      if (!target_user_id) return res.status(400).json({ success: false, error: 'Dados inválidos' });
+
+      const { list, sha } = await read('support');
+      // Remove any previous concluded markers for this thread, then add/remove
+      const filtered = list.filter(m => !(m.from === 'system' && m.target_user_id === target_user_id));
+      if (concluded !== false) {
+        filtered.push({
+          id: crypto.randomUUID(),
+          from: 'system',
+          target_user_id,
+          concluded: true,
+          sent_at: new Date().toISOString()
+        });
+      }
+      await write('support', filtered, sha, `support: thread concluded by ${admin.name}`);
+      return res.json({ success: true });
+    }
+
     if (req.method === 'PUT') {
       // Admin reply
       const admin = requireAdmin(req);
