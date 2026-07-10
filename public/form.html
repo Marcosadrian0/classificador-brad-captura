@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário — SBK Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+<nav class="topbar">
+  <div class="topbar-logo">
+    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
+  </div>
+  <span class="topbar-name">SBK Forms</span>
+  <div class="topbar-right">
+    <a href="/dashboard" style="color:rgba(236,239,243,.7);font-size:12px;font-weight:300;text-decoration:none">&#8592; Voltar</a>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<div class="page" style="max-width:680px">
+  <div id="content">
+    <div class="empty-state"><p>Carregando...</p></div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('sbk_token');
+  const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
+  if (!token || !user) window.location.href = '/';
+
+  const formId = new URLSearchParams(location.search).get('id');
+  if (!formId) window.location.href = '/dashboard';
+
+  function logout() { localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user'); window.location.href = '/'; }
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  let formData = null;
+
+  async function load() {
+    const res = await fetch(`/api/forms/${formId}`, { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    const el = document.getElementById('content');
+
+    if (!data.success) {
+      el.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+      return;
+    }
+
+    formData = data.form;
+    const already = formData.myResponse;
+    const values = already ? already.values : {};
+
+    document.title = `${formData.title} — SBK Forms`;
+
+    const fieldsHtml = formData.fields.map(f => {
+      const req = f.required ? '<span class="req"> *</span>' : '';
+      const val = values[f.id] || '';
+
+      if (f.field_type === 'text') {
+        return `<div class="field-block">
+          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
+          <input class="form-input" type="text" id="f${f.id}" data-id="${f.id}" data-type="text" value="${esc(val)}" ${already ? '' : ''}>
+        </div>`;
+      }
+      if (f.field_type === 'textarea') {
+        return `<div class="field-block">
+          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
+          <textarea class="form-textarea" id="f${f.id}" data-id="${f.id}" data-type="textarea">${esc(val)}</textarea>
+        </div>`;
+      }
+      if (f.field_type === 'radio') {
+        const opts = f.options || ['Sim', 'Não'];
+        return `<div class="field-block">
+          <span class="field-label-text">${esc(f.label)}${req}</span>
+          <div class="radio-group">${opts.map(o => `
+            <label class="radio-opt">
+              <input type="radio" name="f${f.id}" data-id="${f.id}" data-type="radio" value="${esc(o)}" ${val === o ? 'checked' : ''}>
+              ${esc(o)}
+            </label>`).join('')}
+          </div>
+        </div>`;
+      }
+      if (f.field_type === 'checkbox') {
+        const opts = f.options || [];
+        const checked = val ? val.split('||') : [];
+        return `<div class="field-block">
+          <span class="field-label-text">${esc(f.label)}${req}</span>
+          <div class="check-group">${opts.map(o => `
+            <label class="check-opt">
+              <input type="checkbox" data-id="${f.id}" data-type="checkbox" value="${esc(o)}" ${checked.includes(o) ? 'checked' : ''}>
+              ${esc(o)}
+            </label>`).join('')}
+          </div>
+        </div>`;
+      }
+      if (f.field_type === 'select') {
+        const opts = f.options || [];
+        return `<div class="field-block">
+          <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
+          <select class="form-select" id="f${f.id}" data-id="${f.id}" data-type="select">
+            <option value="">Selecione...</option>
+            ${opts.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}
+          </select>
+        </div>`;
+      }
+      return '';
+    }).join('');
+
+    el.innerHTML = `
+      ${already ? `<div class="alert alert-info">Você já enviou este formulário em ${new Date(already.submitted_at).toLocaleString('pt-BR')}. Você pode reenviar para atualizar suas respostas.</div>` : ''}
+      <div class="page-title">${esc(formData.title)}</div>
+      ${formData.description ? `<div class="page-sub">${esc(formData.description)}</div>` : '<div style="margin-bottom:24px"></div>'}
+      <div id="form-alert" style="display:none" class="alert"></div>
+      <div class="card">
+        <form id="the-form" onsubmit="submit(event)">
+          ${fieldsHtml}
+          <div style="margin-top:8px">
+            <button class="btn btn-primary" type="submit" id="submit-btn">Enviar respostas</button>
+          </div>
+        </form>
+      </div>`;
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('form-alert');
+    const btn = document.getElementById('submit-btn');
+    alertEl.style.display = 'none';
+
+    const values = {};
+    let valid = true;
+
+    formData.fields.forEach(f => {
+      if (f.field_type === 'radio') {
+        const checked = document.querySelector(`input[name="f${f.id}"]:checked`);
+        if (f.required && !checked) { valid = false; return; }
+        if (checked) values[f.id] = checked.value;
+      } else if (f.field_type === 'checkbox') {
+        const checked = [...document.querySelectorAll(`input[data-id="${f.id}"]:checked`)].map(i => i.value);
+        if (f.required && !checked.length) { valid = false; return; }
+        values[f.id] = checked;
+      } else {
+        const el = document.querySelector(`[data-id="${f.id}"]`);
+        if (!el) return;
+        if (f.required && !el.value.trim()) { valid = false; return; }
+        values[f.id] = el.value;
+      }
+    });
+
+    if (!valid) {
+      alertEl.textContent = 'Preencha todos os campos obrigatórios.';
+      alertEl.className = 'alert alert-error';
+      alertEl.style.display = 'block';
+      return;
+    }
+
+    btn.textContent = 'Enviando...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`/api/forms/${formId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ values })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      alertEl.textContent = 'Respostas enviadas com sucesso!';
+      alertEl.className = 'alert alert-success';
+      alertEl.style.display = 'block';
+      btn.textContent = 'Enviado';
+      setTimeout(() => window.location.href = '/dashboard', 1500);
+    } catch (err) {
+      alertEl.textContent = err.message;
+      alertEl.className = 'alert alert-error';
+      alertEl.style.display = 'block';
+      btn.textContent = 'Enviar respostas';
+      btn.disabled = false;
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
