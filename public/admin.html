@@ -1409,7 +1409,10 @@ async function pollSupportNotif() {
     const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
     const data = await res.json();
     if (!data.success) return;
-    const unread = (data.messages || []).filter(m => m.from !== 'admin' && !m.read).length;
+    const msgs = data.messages || [];
+    // Find concluded thread user IDs
+    const concludedIds = new Set(msgs.filter(m => m.from === 'system' && m.concluded).map(m => m.target_user_id));
+    const unread = msgs.filter(m => m.from === 'user' && !m.read && !concludedIds.has(m.user_id)).length;
     const badge = document.getElementById('support-badge');
     if (badge) {
       if (unread > 0) {
@@ -1456,17 +1459,21 @@ function renderSupportThreads() {
     el.innerHTML = '<div style="padding:20px;font-size:12px;color:#9ca3af;text-align:center">Nenhuma mensagem ainda.</div>';
     return;
   }
-  el.innerHTML = Object.entries(byUser).map(([uid, u]) => {
+  const openThreads = Object.entries(byUser).filter(([uid]) => !isThreadConcluded(uid));
+  if (!openThreads.length) {
+    el.innerHTML = '<div style="padding:20px;font-size:12px;color:#9ca3af;text-align:center">Nenhuma conversa aberta.</div>';
+    return;
+  }
+  el.innerHTML = openThreads.map(([uid, u]) => {
     const visibleMsgs = u.msgs.filter(m => m.from !== 'system');
     const last = visibleMsgs[visibleMsgs.length-1] || u.msgs[u.msgs.length-1];
     const av = (u.name||'U').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
     const preview = last?.message ? (last.message.length > 32 ? last.message.slice(0,32)+'...' : last.message) : '';
     const active = uid === activeThreadUserId ? ' active' : '';
-    const concluded = isThreadConcluded(uid);
-    return `<div class="thread-item${active}" onclick="openThread('${uid}','${esc(u.name)}')" style="${concluded?'opacity:.55':''}">
-      <div class="thread-av" style="${concluded?'background:#9ca3af':''}">${av}</div>
+    return `<div class="thread-item${active}" onclick="openThread('${uid}','${esc(u.name)}')">
+      <div class="thread-av">${av}</div>
       <div class="thread-info">
-        <div class="thread-name">${esc(u.name)}${concluded?' <span style="font-size:9px;background:#dcfce7;color:#16a34a;border-radius:4px;padding:1px 5px;font-weight:700;vertical-align:middle">OK</span>':''}</div>
+        <div class="thread-name">${esc(u.name)}</div>
         <div class="thread-preview">${esc(preview)}</div>
       </div>
     </div>`;
