@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../../lib/db');
+const { read } = require('../../lib/storage');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).end();
@@ -8,9 +8,9 @@ module.exports = async (req, res) => {
     const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ success: false, error: 'Email e senha obrigatórios' });
 
-    const { rows } = await db.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
-    const user = rows[0];
-    if (!user || !await bcrypt.compare(password, user.password_hash)) {
+    const { list: users } = await read('users');
+    const user = users.find(u => u.email === email.toLowerCase().trim());
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }
 
