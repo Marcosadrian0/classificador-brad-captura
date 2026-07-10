@@ -1,13 +1,15 @@
 const bcrypt = require('bcryptjs');
+const { randomUUID } = require('crypto');
 const { requireAdmin, apiError } = require('../../lib/auth');
-const db = require('../../lib/db');
+const { read, write } = require('../../lib/storage');
 
 module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       requireAdmin(req);
-      const { rows } = await db.query('SELECT id, name, email, role, created_at FROM users ORDER BY name');
-      return res.json({ success: true, users: rows });
+      const { list: users } = await read('users');
+      const safe = users.map(({ password_hash, ...u }) => u).sort((a, b) => a.name.localeCompare(b.name));
+      return res.json({ success: true, users: safe });
     }
 
     if (req.method === 'POST') {
@@ -16,17 +18,27 @@ module.exports = async (req, res) => {
       if (!name || !email || !password) return res.status(400).json({ success: false, error: 'Nome, email e senha são obrigatórios' });
       if (!['admin', 'user'].includes(role)) return res.status(400).json({ success: false, error: 'Role inválida' });
 
-      const hash = await bcrypt.hash(password, 10);
-      const { rows } = await db.query(
-        'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-        [name.trim(), email.toLowerCase().trim(), hash, role]
-      );
-      return res.status(201).json({ success: true, user: rows[0] });
+      const file = await read('users');
+      if (file.list.find(u => u.email === email.toLowerCase().trim())) {
+        return res.status(409).json({ success: false, error: 'Este email já está cadastrado' });
+      }
+
+      const user = {
+        id: randomUUID(),
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        password_hash: await bcrypt.hash(password, 10),
+        role,
+        created_at: new Date().toISOString()
+      };
+
+      await write('users', [...file.list, user], file.sha, `add: usuário ${user.email}`);
+      const { password_hash, ...safe } = user;
+      return res.status(201).json({ success: true, user: safe });
     }
 
     res.status(405).end();
   } catch (e) {
-    if (e.code === '23505') return res.status(409).json({ success: false, error: 'Este email já está cadastrado' });
     apiError(res, e);
   }
 };

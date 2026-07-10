@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
-const { requireAdmin, verifyToken, apiError } = require('../../lib/auth');
-const db = require('../../lib/db');
+const { requireAdmin, apiError } = require('../../lib/auth');
+const { read, write } = require('../../lib/storage');
 
 module.exports = async (req, res) => {
   const { id } = req.query;
@@ -8,20 +8,29 @@ module.exports = async (req, res) => {
     if (req.method === 'PUT') {
       requireAdmin(req);
       const { name, email, password, role } = req.body || {};
-      if (password) {
-        const hash = await bcrypt.hash(password, 10);
-        await db.query('UPDATE users SET name=$1, email=$2, password_hash=$3, role=$4 WHERE id=$5', [name, email.toLowerCase(), hash, role, id]);
-      } else {
-        await db.query('UPDATE users SET name=$1, email=$2, role=$3 WHERE id=$4', [name, email.toLowerCase(), role, id]);
-      }
-      const { rows } = await db.query('SELECT id, name, email, role FROM users WHERE id=$1', [id]);
-      return res.json({ success: true, user: rows[0] });
+      const file = await read('users');
+      const idx = file.list.findIndex(u => u.id === id);
+      if (idx === -1) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+
+      const user = { ...file.list[idx], name: name.trim(), email: email.toLowerCase().trim(), role };
+      if (password) user.password_hash = await bcrypt.hash(password, 10);
+
+      file.list[idx] = user;
+      await write('users', file.list, file.sha, `update: usuário ${user.email}`);
+
+      const { password_hash, ...safe } = user;
+      return res.json({ success: true, user: safe });
     }
 
     if (req.method === 'DELETE') {
       const caller = requireAdmin(req);
-      if (String(caller.id) === String(id)) return res.status(400).json({ success: false, error: 'Não é possível excluir seu próprio usuário' });
-      await db.query('DELETE FROM users WHERE id=$1', [id]);
+      if (caller.id === id) return res.status(400).json({ success: false, error: 'Não é possível excluir seu próprio usuário' });
+
+      const file = await read('users');
+      const user = file.list.find(u => u.id === id);
+      if (!user) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+
+      await write('users', file.list.filter(u => u.id !== id), file.sha, `delete: usuário ${user.email}`);
       return res.json({ success: true });
     }
 

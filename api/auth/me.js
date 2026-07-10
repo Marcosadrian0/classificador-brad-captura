@@ -1,13 +1,15 @@
 const { verifyToken, apiError } = require('../../lib/auth');
-const db = require('../../lib/db');
+const { read } = require('../../lib/storage');
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).end();
   try {
     const payload = verifyToken(req);
-    const { rows } = await db.query('SELECT id, name, email, role FROM users WHERE id = $1', [payload.id]);
-    if (!rows[0]) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
-    res.json({ success: true, user: rows[0] });
+    const { list: users } = await read('users');
+    const user = users.find(u => u.id === payload.id);
+    if (!user) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+    const { password_hash, ...safe } = user;
+    res.json({ success: true, user: safe });
   } catch (e) {
     apiError(res, e);
   }
