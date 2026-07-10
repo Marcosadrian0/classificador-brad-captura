@@ -592,6 +592,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Atribuir para usuários</div>
       <div class="assign-grid" id="assign-users"></div>
     </div>
+    <div style="margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.07em">Regras de disparo automático</div>
+        <button class="btn-secondary btn-sm" onclick="addTrigger()" style="height:28px;padding:0 10px;font-size:11px">+ Adicionar regra</button>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-bottom:10px">Se o usuário responder conforme a condição, outro formulário é atribuído automaticamente.</div>
+      <div id="triggers-list"></div>
+    </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeFormModal()">Cancelar</button>
       <button class="btn-primary" onclick="saveForm()" id="form-save-btn">Salvar formulário</button>
@@ -950,15 +958,16 @@ async function loadFormsPanel() {
 }
 
 // ── FORM MODAL ───────────────────────────────────────────────
-let editingFormId = null, fieldCount = 0;
+let editingFormId = null, fieldCount = 0, formTriggers = [];
 
 function openFormModal() {
-  editingFormId = null; fieldCount = 0;
+  editingFormId = null; fieldCount = 0; formTriggers = [];
   document.getElementById('form-modal-title').textContent = 'Novo formulário';
   document.getElementById('fm-title').value = '';
   document.getElementById('fm-desc').value = '';
   document.getElementById('fields-list').innerHTML = '';
   document.getElementById('form-modal-alert').style.display = 'none';
+  renderTriggers();
   loadAssignUsers([]);
   document.getElementById('form-modal').classList.add('open');
 }
@@ -967,7 +976,7 @@ async function editForm(id) {
   const data = await api(`/api/forms/${id}`);
   if (!data.success) return;
   const f = data.form;
-  editingFormId = id; fieldCount = 0;
+  editingFormId = id; fieldCount = 0; formTriggers = JSON.parse(JSON.stringify(f.triggers || []));
   document.getElementById('form-modal-title').textContent = 'Editar formulário';
   document.getElementById('fm-title').value = f.title;
   document.getElementById('fm-desc').value = f.description || '';
@@ -975,6 +984,7 @@ async function editForm(id) {
   document.getElementById('form-modal-alert').style.display = 'none';
   f.fields.forEach(field => addField(field));
   loadAssignUsers(f.assigned_user_ids || []);
+  renderTriggers();
   document.getElementById('form-modal').classList.add('open');
 }
 
@@ -1065,13 +1075,14 @@ async function saveForm() {
   const fields = collectFields();
   const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => i.dataset.uid);
   const description = document.getElementById('fm-desc').value.trim();
+  const triggers = formTriggers.filter(t => t.target_form_id && t.condition);
   btn.textContent = 'Salvando...'; btn.disabled = true;
   try {
     let data;
     if (editingFormId) {
-      data = await api(`/api/forms/${editingFormId}`, { method:'PUT', body: JSON.stringify({ title, description, is_active: true, userIds }) });
+      data = await api(`/api/forms/${editingFormId}`, { method:'PUT', body: JSON.stringify({ title, description, is_active: true, userIds, triggers }) });
     } else {
-      data = await api('/api/forms', { method:'POST', body: JSON.stringify({ title, description, fields, userIds }) });
+      data = await api('/api/forms', { method:'POST', body: JSON.stringify({ title, description, fields, userIds, triggers }) });
     }
     if (!data.success) throw new Error(data.error);
     closeFormModal();
@@ -1214,6 +1225,48 @@ document.addEventListener('click', e => {
 });
 loadDashboard();
 pollSupportNotif();
+
+// ── TRIGGERS ──────────────────────────────────────────────────
+function addTrigger() {
+  formTriggers.push({ condition: 'any_nao', target_form_id: '' });
+  renderTriggers();
+}
+
+function removeTrigger(i) {
+  formTriggers.splice(i, 1);
+  renderTriggers();
+}
+
+function updateTrigger(i, key, value) {
+  formTriggers[i][key] = value;
+}
+
+function renderTriggers() {
+  const el = document.getElementById('triggers-list');
+  if (!el) return;
+  if (!formTriggers.length) {
+    el.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:8px 0">Nenhuma regra configurada.</div>';
+    return;
+  }
+  const forms = allForms.filter(f => f.id !== editingFormId);
+  el.innerHTML = formTriggers.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#f4f6f9;border-radius:10px;padding:12px">
+      <div style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:#1a2332;white-space:nowrap">Se o usuário responder</span>
+        <select class="form-select" style="width:140px;height:34px" onchange="updateTrigger(${i},'condition',this.value)">
+          <option value="any_nao" ${t.condition==='any_nao'?'selected':''}>NAO em qualquer campo</option>
+          <option value="all_nao" ${t.condition==='all_nao'?'selected':''}>NAO em todos os campos</option>
+        </select>
+        <span style="font-size:12px;font-weight:600;color:#1a2332;white-space:nowrap">, abrir:</span>
+        <select class="form-select" style="flex:1;min-width:160px;height:34px" onchange="updateTrigger(${i},'target_form_id',this.value)">
+          <option value="">Selecione um formulário...</option>
+          ${forms.map(f=>`<option value="${f.id}" ${t.target_form_id===f.id?'selected':''}>${esc(f.title)}</option>`).join('')}
+        </select>
+      </div>
+      <button onclick="removeTrigger(${i})" style="background:none;border:none;color:#dc2626;font-size:16px;cursor:pointer;flex-shrink:0" title="Remover">&#10005;</button>
+    </div>
+  `).join('');
+}
 
 // ── IMPORT CSV ────────────────────────────────────────────────
 let importRows = [];

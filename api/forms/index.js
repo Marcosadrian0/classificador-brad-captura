@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'POST') {
       const admin = requireAdmin(req);
-      const { title, description, fields = [], userIds = [] } = req.body || {};
+      const { title, description, fields = [], userIds = [], triggers = [] } = req.body || {};
       if (!title) return res.status(400).json({ success: false, error: 'Título obrigatório' });
 
       const form = {
@@ -49,7 +49,8 @@ module.exports = async (req, res) => {
           required: !!f.required,
           order_index: i
         })),
-        assigned_user_ids: userIds
+        assigned_user_ids: userIds,
+        triggers: triggers.filter(t => t.target_form_id && t.condition)
       };
 
       const file = await read('forms');

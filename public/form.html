@@ -683,8 +683,14 @@ async function submitForm() {
     });
     const d = await res.json();
     if (!d.success) throw new Error(d.error);
-    showAlert('Respostas enviadas com sucesso!','success');
-    setTimeout(()=>window.location.href='/dashboard',1500);
+    if (d.triggered && d.triggered.length) {
+      const names = d.triggered.map(t => `"${t.title}"`).join(', ');
+      showAlert(`Respostas enviadas! Um novo formulário foi liberado para você: ${names}. Redirecionando...`, 'success');
+      setTimeout(() => window.location.href = '/form?id=' + d.triggered[0].id, 2800);
+    } else {
+      showAlert('Respostas enviadas com sucesso!', 'success');
+      setTimeout(() => window.location.href = '/dashboard', 1500);
+    }
   } catch(e) {
     showAlert(e.message);
     if (btn) { btn.textContent='Enviar'; btn.disabled=false; }

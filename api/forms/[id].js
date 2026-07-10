@@ -26,13 +26,14 @@ module.exports = async (req, res) => {
 
     if (req.method === 'PUT') {
       requireAdmin(req);
-      const { title, description, is_active, userIds } = req.body || {};
+      const { title, description, is_active, userIds, triggers } = req.body || {};
       const file = await read('forms');
       const idx = file.list.findIndex(f => f.id === id);
       if (idx === -1) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
 
       const form = { ...file.list[idx], title, description: description || null, is_active };
       if (Array.isArray(userIds)) form.assigned_user_ids = userIds;
+      if (Array.isArray(triggers)) form.triggers = triggers;
 
       file.list[idx] = form;
       await write('forms', file.list, file.sha, `update: formulário "${form.title}"`);
