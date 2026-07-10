@@ -250,6 +250,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
 .empty-state p { font-size: 13px; }
 
 /* Alert */
+/* IMPORT DROPZONE */
+.import-dropzone { border: 2px dashed #e8eaed; border-radius: 12px; padding: 32px 20px; text-align: center; cursor: pointer; transition: all .15s; background: #fafbfc; }
+.import-dropzone:hover, .import-dropzone.drag { border-color: #023631; background: #f0fdf4; }
+
 /* SUPPORT CHAT */
 .thread-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f4f6f9; transition: background .12s; }
 .thread-item:hover { background: #f4f6f9; }
@@ -372,17 +376,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <a class="nav-item" data-panel="users" onclick="navTo('users')">
       <span class="nav-icon">&#128101;</span><span class="nav-label">Usuários</span>
     </a>
-    <a class="nav-item" data-panel="support" onclick="navTo('support')">
-      <span class="nav-icon">&#128172;</span><span class="nav-label">Suporte <span class="notif-dot" id="support-dot" style="display:none;width:7px;height:7px;background:#4ade80;border-radius:50%;margin-left:4px;display:inline-block;vertical-align:middle"></span></span>
+    <a class="nav-item" data-panel="support" onclick="navTo('support')" style="position:relative">
+      <span class="nav-icon">&#128172;</span><span class="nav-label">Suporte</span>
+      <span id="support-badge" style="display:none;position:absolute;top:7px;right:8px;min-width:17px;height:17px;background:#4ade80;border-radius:99px;font-size:10px;font-weight:700;color:#023631;display:none;align-items:center;justify-content:center;padding:0 4px" id="support-badge"></span>
     </a>
   </nav>
   <div class="sidebar-footer">
-    <div class="plan-badge">
-      <div class="plan-label">Plano atual</div>
-      <div class="plan-name">Professional</div>
-      <div class="plan-valid">Válido até 10/08/2026</div>
-    </div>
-    <button class="btn-plan"><span>&#9881; Gerenciar plano</span></button>
     <button class="btn-collapse" onclick="toggleSidebar()">
       <span style="font-size:16px">&#8592;</span><span>Recolher menu</span>
     </button>
@@ -507,7 +506,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
           <div class="inner-title">Usuários</div>
           <div class="inner-sub">Gerencie os colaboradores que acessam o sistema.</div>
         </div>
-        <button class="btn-new" onclick="openUserModal()">+ Novo usuário</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary btn-sm" onclick="openImportModal()" style="height:36px;padding:0 14px">&#8613; Importar CSV</button>
+          <button class="btn-new" onclick="openUserModal()">+ Novo usuário</button>
+        </div>
       </div>
       <div class="table-card">
         <div class="table-wrap">
@@ -625,6 +627,42 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeUserModal()">Cancelar</button>
       <button class="btn-primary" onclick="saveUser()" id="user-save-btn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORTAR CSV -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">Importar usuários via CSV</div>
+    <div id="import-alert" style="display:none" class="alert alert-error"></div>
+    <div style="margin-bottom:14px;font-size:12px;color:#4A545E;line-height:1.6">
+      Faça upload de um arquivo <strong>.csv</strong> com as colunas:<br>
+      <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">nome,usuario,senha</code>
+      <br>A senha é opcional — se omitida, será gerada automaticamente.
+    </div>
+    <div style="margin-bottom:12px">
+      <button class="btn-secondary btn-sm" onclick="downloadTemplate()" style="height:32px;padding:0 12px;font-size:11px">&#8615; Baixar modelo .csv</button>
+    </div>
+    <div class="import-dropzone" id="import-dropzone" onclick="document.getElementById('import-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+      <div style="font-size:28px;margin-bottom:8px">&#128196;</div>
+      <div style="font-size:13px;font-weight:600;color:#1a2332;margin-bottom:4px">Clique ou arraste o arquivo aqui</div>
+      <div style="font-size:11px;color:#9ca3af">Formato: .csv, até 500 usuários</div>
+      <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
+    </div>
+    <div id="import-preview" style="display:none;margin-top:14px">
+      <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Preview <span id="import-count"></span></div>
+      <div style="max-height:200px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#f4f6f9"><th style="padding:8px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:8px 12px;text-align:left;font-weight:600">Usuário</th><th style="padding:8px 12px;text-align:left;font-weight:600">Senha</th></tr></thead>
+          <tbody id="import-preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="import-result" style="display:none;margin-top:14px"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeImportModal()">Fechar</button>
+      <button class="btn-primary" id="import-save-btn" onclick="runImport()" style="display:none">Importar usuários</button>
     </div>
   </div>
 </div>
@@ -1175,6 +1213,121 @@ document.addEventListener('click', e => {
   }
 });
 loadDashboard();
+pollSupportNotif();
+
+// ── IMPORT CSV ────────────────────────────────────────────────
+let importRows = [];
+
+function openImportModal() {
+  importRows = [];
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-result').style.display = 'none';
+  document.getElementById('import-save-btn').style.display = 'none';
+  document.getElementById('import-alert').style.display = 'none';
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-modal').classList.add('active');
+}
+function closeImportModal() { document.getElementById('import-modal').classList.remove('active'); }
+
+function downloadTemplate() {
+  const csv = 'nome,usuario,senha\nJoão Silva,joao.silva,senha123\nMaria Souza,maria.souza,';
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
+  a.download = 'modelo_importacao.csv';
+  a.click();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('import-dropzone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) parseCSVFile(file);
+}
+function handleFileSelect(e) { if (e.target.files[0]) parseCSVFile(e.target.files[0]); }
+
+function parseCSVFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const text = ev.target.result.replace(/^﻿/, '');
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (!lines.length) return;
+    const header = lines[0].toLowerCase().split(',').map(h => h.trim());
+    const iNome = header.indexOf('nome'), iUser = header.indexOf('usuario') !== -1 ? header.indexOf('usuario') : header.indexOf('usuário');
+    const iSenha = header.indexOf('senha');
+    if (iNome === -1 || iUser === -1) {
+      const al = document.getElementById('import-alert');
+      al.textContent = 'Colunas "nome" e "usuario" são obrigatórias no CSV.';
+      al.style.display = 'block'; return;
+    }
+    importRows = lines.slice(1).map(l => {
+      const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g,''));
+      return { name: cols[iNome]||'', username: cols[iUser]||'', password: iSenha !== -1 ? cols[iSenha]||'' : '' };
+    }).filter(r => r.name && r.username);
+    renderImportPreview();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function renderImportPreview() {
+  const preview = document.getElementById('import-preview');
+  const body = document.getElementById('import-preview-body');
+  const cnt = document.getElementById('import-count');
+  cnt.textContent = `(${importRows.length} usuários)`;
+  body.innerHTML = importRows.map(r => `<tr style="border-top:1px solid #f4f6f9">
+    <td style="padding:7px 12px">${esc(r.name)}</td>
+    <td style="padding:7px 12px">${esc(r.username)}</td>
+    <td style="padding:7px 12px;color:#9ca3af">${r.password ? '••••••' : 'Auto'}</td>
+  </tr>`).join('');
+  preview.style.display = 'block';
+  document.getElementById('import-save-btn').style.display = '';
+}
+
+async function runImport() {
+  const btn = document.getElementById('import-save-btn');
+  btn.textContent = 'Importando...'; btn.disabled = true;
+  const result = document.getElementById('import-result');
+  let ok = 0, fail = [];
+
+  for (const r of importRows) {
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ name: r.name, username: r.username, password: r.password || Math.random().toString(36).slice(-8), role: 'user' })
+      });
+      const d = await res.json();
+      if (d.success) ok++; else fail.push(`${r.name}: ${d.error}`);
+    } catch(e) { fail.push(`${r.name}: erro de rede`); }
+  }
+
+  result.style.display = 'block';
+  result.innerHTML = `<div class="alert ${fail.length ? 'alert-info' : 'alert-success'}">
+    ${ok} usuário(s) criado(s) com sucesso.${fail.length ? `<br>Erros (${fail.length}): ${fail.slice(0,5).map(esc).join(', ')}` : ''}
+  </div>`;
+  btn.textContent = 'Importar usuários'; btn.disabled = false;
+  if (ok) loadUsers();
+}
+
+// ── SUPPORT NOTIFICATIONS ──────────────────────────────────────
+let lastSupportCount = 0;
+async function pollSupportNotif() {
+  try {
+    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) return;
+    const unread = (data.messages || []).filter(m => m.from !== 'admin' && !m.read).length;
+    const badge = document.getElementById('support-badge');
+    if (badge) {
+      if (unread > 0) {
+        badge.textContent = unread > 9 ? '9+' : unread;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+  setTimeout(pollSupportNotif, 30000);
+}
 
 // ── SUPPORT CHAT ──────────────────────────────────────────────
 let supportMessages = [], activeThreadUserId = null, activeThreadUserName = '';
