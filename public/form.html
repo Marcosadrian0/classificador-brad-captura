@@ -297,10 +297,22 @@ async function load() {
   formData = data.form;
   const already = formData.myResponse;
   values = already ? JSON.parse(JSON.stringify(already.values)) : {};
+  // Normalise legacy plain SIM/NAO values to acesso pipe format
+  Object.keys(values).forEach(k => {
+    const v = String(values[k] || '');
+    const norm = v.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+    if (v === 'SIM') values[k] = 'SIM||';
+    else if (norm === 'NAO') values[k] = 'NAO||';
+  });
   document.title = `${formData.title} — SBK Forms`;
 
-  regularFields = formData.fields.filter(f => f.field_type !== 'acesso');
-  acessoFields  = formData.fields.filter(f => f.field_type === 'acesso');
+  const isSIMNAO = f => (f.field_type === 'radio' || f.field_type === 'checkbox')
+    && Array.isArray(f.options) && f.options.length === 2
+    && f.options.some(o => o.toUpperCase() === 'SIM')
+    && f.options.some(o => o.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase() === 'NAO');
+
+  regularFields = formData.fields.filter(f => f.field_type !== 'acesso' && !isSIMNAO(f));
+  acessoFields  = formData.fields.filter(f => f.field_type === 'acesso' || isSIMNAO(f));
 
   if (regularFields.length && acessoFields.length) totalSteps = 3;
   else if (acessoFields.length) totalSteps = 2;
