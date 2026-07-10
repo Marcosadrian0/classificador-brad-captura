@@ -4,81 +4,201 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meus Formulários — SBK Forms</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; overflow-x: hidden; }
+
+/* SIDEBAR */
+.sidebar { width: 220px; min-height: 100vh; background: #023631; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: width .2s; }
+.sidebar.collapsed { width: 64px; }
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.logo-icon { display: flex; gap: 3px; flex-shrink: 0; }
+.lc { width: 8px; border-radius: 2px; }
+.lc1 { height: 18px; background: #4ade80; }
+.lc2 { height: 13px; background: rgba(255,255,255,.5); margin-top: 5px; }
+.lc3 { height: 22px; background: rgba(255,255,255,.25); }
+.logo-text { font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+.sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; color: rgba(255,255,255,.6); font-size: 13px; cursor: pointer; transition: all .15s; text-decoration: none; white-space: nowrap; overflow: hidden; }
+.nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
+.nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+.nav-label { overflow: hidden; transition: opacity .15s; }
+.sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+.sidebar-footer { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,.08); }
+.plan-badge { background: rgba(255,255,255,.08); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+.sidebar.collapsed .plan-badge { display: none; }
+.plan-label { font-size: 10px; color: rgba(255,255,255,.4); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.plan-name { font-size: 12px; font-weight: 700; color: #4ade80; margin: 2px 0; }
+.plan-valid { font-size: 10px; color: rgba(255,255,255,.4); }
+.btn-collapse { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: rgba(255,255,255,.4); font-size: 11px; font-weight: 600; cursor: pointer; padding: 4px 2px; font-family: inherit; transition: color .15s; }
+.btn-collapse:hover { color: rgba(255,255,255,.8); }
+.sidebar.collapsed .btn-collapse span:last-child { display: none; }
+
+/* MAIN */
+.main { margin-left: 220px; width: calc(100vw - 220px); display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .2s, width .2s; overflow-x: hidden; }
+.sidebar.collapsed ~ .main { margin-left: 64px; width: calc(100vw - 64px); }
+
+/* TOPBAR */
+.topbar { height: 52px; background: #fff; border-bottom: 1px solid #e8eaed; display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 50; }
+.topbar-spacer { flex: 1; }
+.user-chip { display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+.user-chip:hover { background: #f4f6f9; }
+.user-av { width: 30px; height: 30px; border-radius: 50%; background: #023631; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.user-nm { font-size: 12px; font-weight: 600; color: #1a2332; }
+.user-rl { font-size: 10px; color: #4A545E; }
+.btn-logout { height: 32px; padding: 0 14px; background: none; border: 1.5px solid #e8eaed; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; color: #4A545E; transition: all .15s; }
+.btn-logout:hover { border-color: #dc2626; color: #dc2626; }
+
+/* CONTENT */
+.content { flex: 1; padding: 32px 32px 40px; overflow-x: hidden; }
+.page-head { margin-bottom: 28px; }
+.page-title { font-size: 22px; font-weight: 700; color: #1a2332; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: #4A545E; font-weight: 300; }
+
+/* FORM CARDS */
+.forms-list { display: flex; flex-direction: column; gap: 12px; max-width: 780px; }
+.form-card { display: flex; align-items: flex-start; gap: 16px; background: #fff; border: 1.5px solid #e8eaed; border-radius: 14px; padding: 20px 24px; text-decoration: none; color: inherit; transition: all .15s; }
+.form-card:hover { border-color: #023631; box-shadow: 0 4px 16px rgba(2,54,49,.08); transform: translateY(-1px); }
+.form-card-icon { width: 44px; height: 44px; background: #f4f6f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.form-card-body { flex: 1; min-width: 0; }
+.form-card-title { font-size: 15px; font-weight: 700; color: #1a2332; margin-bottom: 5px; }
+.form-card-desc { font-size: 12px; color: #4A545E; font-weight: 300; line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.form-card-arrow { font-size: 20px; color: #9ca3af; flex-shrink: 0; align-self: center; transition: color .15s; }
+.form-card:hover .form-card-arrow { color: #023631; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+.badge-green { background: #dcfce7; color: #16a34a; }
+.badge-yellow { background: #fef9c3; color: #a16207; }
+
+/* EMPTY / LOADING */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; color: #9ca3af; text-align: center; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+
+/* ALERTS */
+.alert { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+</style>
 </head>
 <body>
-<nav class="topbar">
-  <div class="topbar-logo">
-    <div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div>
-  </div>
-  <span class="topbar-name">SBK Forms</span>
-  <div class="topbar-right">
-    <span class="topbar-user">Olá, <strong id="user-name">...</strong></span>
-    <button class="btn-logout" onclick="logout()">Sair</button>
-  </div>
-</nav>
 
-<div class="page">
-  <div class="page-title">Meus formulários</div>
-  <div class="page-sub">Preencha os formulários atribuídos a você pela equipe de gestão.</div>
-  <div id="list">
-    <div class="empty-state"><div class="empty-state-icon">&#128203;</div><p>Carregando...</p></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div></div>
+    <span class="logo-text">SBK Forms</span>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  <div class="sidebar-footer">
+    <div class="plan-badge">
+      <div class="plan-label">Plano atual</div>
+      <div class="plan-name">Professional</div>
+      <div class="plan-valid">Válido até 10/08/2026</div>
+    </div>
+    <button class="btn-collapse" id="collapse-btn" onclick="toggleSidebar()">
+      <span style="font-size:16px">&#8592;</span><span>Recolher menu</span>
+    </button>
+  </div>
+</aside>
+
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="topbar-spacer"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn-logout" onclick="logout()">Sair</button>
+      <button class="user-chip">
+        <div class="user-av" id="u-av">M</div>
+        <div>
+          <div class="user-nm" id="u-nm">...</div>
+          <div class="user-rl">Usuário</div>
+        </div>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="page-head">
+      <div class="page-title">Meus formulários</div>
+      <div class="page-sub">Preencha os formulários atribuídos a você pela equipe de gestão.</div>
+    </div>
+    <div id="list">
+      <div class="empty-state"><div class="empty-icon">&#128203;</div><p>Carregando...</p></div>
+    </div>
   </div>
 </div>
 
 <script>
-  const token = localStorage.getItem('sbk_token');
-  const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
-  if (!token || !user) window.location.href = '/';
-  if (user?.role === 'admin') window.location.href = '/admin';
+const token = localStorage.getItem('sbk_token');
+const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
+if (!token || !user) window.location.href = '/';
+if (user?.role === 'admin') window.location.href = '/admin';
 
-  document.getElementById('user-name').textContent = user?.name || '';
+const av = (user.name||'U').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+document.getElementById('u-av').textContent = av;
+document.getElementById('u-nm').textContent = user.name || '';
 
-  function logout() {
-    localStorage.removeItem('sbk_token');
-    localStorage.removeItem('sbk_user');
-    window.location.href = '/';
+const navItems = [
+  ['&#9783;','Painel','/dashboard',true],
+  ['&#128203;','Formulários','/dashboard',false]
+];
+document.getElementById('sidebar-nav').innerHTML = navItems.map(([ic,lb,hr,act])=>
+  `<a class="nav-item${act?' active':''}" href="${hr}"><span class="nav-icon">${ic}</span><span class="nav-label">${lb}</span></a>`).join('');
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed');
+  const btn = document.getElementById('collapse-btn');
+  btn.innerHTML = sb.classList.contains('collapsed')
+    ? '<span style="font-size:16px">&#8594;</span><span></span>'
+    : '<span style="font-size:16px">&#8592;</span><span>Recolher menu</span>';
+}
+
+function logout() {
+  localStorage.removeItem('sbk_token');
+  localStorage.removeItem('sbk_user');
+  window.location.href = '/';
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function load() {
+  const res = await fetch('/api/forms', { headers: { Authorization: 'Bearer ' + token } });
+  const data = await res.json();
+  const list = document.getElementById('list');
+
+  if (!data.success) {
+    list.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
+    return;
   }
 
-  async function load() {
-    const res = await fetch('/api/forms', { headers: { Authorization: 'Bearer ' + token } });
-    const data = await res.json();
-    const list = document.getElementById('list');
+  if (!data.forms.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">&#128203;</div>
+      <p>Nenhum formulário atribuído a você no momento.<br>Aguarde a equipe de gestão.</p>
+    </div>`;
+    return;
+  }
 
-    if (!data.success) {
-      list.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
-      return;
-    }
-
-    if (!data.forms.length) {
-      list.innerHTML = `<div class="empty-state">
-        <div class="empty-state-icon">&#128203;</div>
-        <p>Nenhum formulário atribuído a você no momento.<br>Aguarde a equipe de gestão.</p>
-      </div>`;
-      return;
-    }
-
-    list.innerHTML = data.forms.map(f => `
-      <a class="form-card" href="/form?id=${f.id}">
-        <div class="form-card-icon">&#128196;</div>
-        <div class="form-card-body">
-          <div class="form-card-title">${esc(f.title)}</div>
-          ${f.description ? `<div class="form-card-desc">${esc(f.description)}</div>` : ''}
-          <div style="margin-top:6px">
-            ${f.already_responded
-              ? '<span class="badge badge-green">Enviado</span>'
-              : '<span class="badge badge-yellow">Pendente</span>'}
-          </div>
+  list.innerHTML = `<div class="forms-list">${data.forms.map(f => `
+    <a class="form-card" href="/form?id=${f.id}">
+      <div class="form-card-icon">&#128196;</div>
+      <div class="form-card-body">
+        <div class="form-card-title">${esc(f.title)}</div>
+        ${f.description ? `<div class="form-card-desc">${esc(f.description)}</div>` : ''}
+        <div>
+          ${f.already_responded
+            ? '<span class="badge badge-green">Enviado</span>'
+            : '<span class="badge badge-yellow">Pendente</span>'}
         </div>
-        <div class="form-card-arrow">&#8250;</div>
-      </a>
-    `).join('');
-  }
+      </div>
+      <div class="form-card-arrow">&#8250;</div>
+    </a>
+  `).join('')}</div>`;
+}
 
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  load();
+load();
 </script>
 </body>
 </html>

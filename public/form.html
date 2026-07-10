@@ -387,15 +387,15 @@ function buildRegularStep() {
         <textarea class="f-textarea" data-id="${f.id}" oninput="collectRegular()">${esc(val)}</textarea></div>`;
     } else if (f.field_type === 'radio') {
       html += `<div class="f-group f-full"><label class="f-label">${esc(f.label)}${req}</label>
-        <div class="pill-group">${(f.options||[]).map(o=>`<div class="pill-opt">
-          <input type="radio" name="rf_${f.id}" data-id="${f.id}" value="${esc(o)}" ${val===o?'checked':''} onchange="collectRegular()">
-          <label>${esc(o)}</label></div>`).join('')}</div></div>`;
+        <div class="pill-group">${(f.options||[]).map((o,i)=>`<div class="pill-opt">
+          <input type="radio" name="rf_${f.id}" id="r_${f.id}_${i}" data-id="${f.id}" value="${esc(o)}" ${val===o?'checked':''} onchange="collectRegular()">
+          <label for="r_${f.id}_${i}">${esc(o)}</label></div>`).join('')}</div></div>`;
     } else if (f.field_type === 'checkbox') {
       const chk = val ? val.split('||') : [];
       html += `<div class="f-group f-full"><label class="f-label">${esc(f.label)}${req}</label>
-        <div class="pill-group">${(f.options||[]).map(o=>`<div class="pill-opt">
-          <input type="checkbox" data-id="${f.id}" value="${esc(o)}" ${chk.includes(o)?'checked':''} onchange="collectRegular()">
-          <label>${esc(o)}</label></div>`).join('')}</div></div>`;
+        <div class="pill-group">${(f.options||[]).map((o,i)=>`<div class="pill-opt">
+          <input type="checkbox" id="c_${f.id}_${i}" data-id="${f.id}" value="${esc(o)}" ${chk.includes(o)?'checked':''} onchange="collectRegular()">
+          <label for="c_${f.id}_${i}">${esc(o)}</label></div>`).join('')}</div></div>`;
     } else if (f.field_type === 'select') {
       html += `<div class="f-group"><label class="f-label">${esc(f.label)}${req}</label>
         <select class="f-select" data-id="${f.id}" onchange="collectRegular()">
