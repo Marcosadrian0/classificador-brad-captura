@@ -1,1 +1,123 @@
-[]
+[
+  {
+    "id": "6fd327b8-59e4-4c19-a2e4-b3a1232d8019",
+    "title": "Levantamento e Gestão de Acessos dos Analistas",
+    "description": "Realizar o levantamento e o controle dos acessos de cada analista aos sistemas utilizados na operação.\n\nNeste formulário deverão ser informados os acessos que o colaborador já possui e aqueles que ainda precisam ser solicitados ao banco. Essas informações serão utilizadas para acompanhar o status das liberações, identificar pendências e agilizar o processo de concessão de acessos, principalmente para novos colaboradores ou mudanças de função.\n\nO formulário servirá como base para centralizar o controle dos acessos da equipe, evitando solicitações duplicadas e facilitando a gestão das permissões necessárias para a execução das atividades.",
+    "is_active": true,
+    "created_by": "aa9a4c63-3bb9-48fd-a1d8-3ff45fa463a3",
+    "created_at": "2026-07-10T18:31:46.545Z",
+    "fields": [
+      {
+        "id": "8557a018-a2f5-406d-bff5-3c4afab947cb",
+        "label": "SALES FORCE",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 0
+      },
+      {
+        "id": "6c36d626-b636-4d5f-9fdc-327dd4630229",
+        "label": "AppSmith",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 1
+      },
+      {
+        "id": "f8f61da4-0dd7-44f8-9410-6087f26777e7",
+        "label": "Conductor",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 2
+      },
+      {
+        "id": "c29ce02d-0427-4dac-9076-534c8d549c22",
+        "label": "Fraud Prevention Backoffice",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 3
+      },
+      {
+        "id": "92e96f57-29f9-4aa8-aa91-d8e20ab5961e",
+        "label": "GED",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 4
+      },
+      {
+        "id": "7b0c262f-c727-4e79-a590-367d8fc90c9f",
+        "label": "Matera",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 5
+      },
+      {
+        "id": "9e28c856-7612-4356-8c61-d4e6282c1f89",
+        "label": "Recupera",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 6
+      },
+      {
+        "id": "da7890fa-be2f-428d-ba2a-56145c02e543",
+        "label": "SPB",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 7
+      },
+      {
+        "id": "29bb8499-9981-4e34-a8ca-81baa52b8db1",
+        "label": "Único Biometria",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 8
+      },
+      {
+        "id": "d5212882-f8f5-4222-aab2-97e2a03cde4d",
+        "label": "Benner",
+        "field_type": "checkbox",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": true,
+        "order_index": 9
+      }
+    ],
+    "assigned_user_ids": []
+  }
+]
