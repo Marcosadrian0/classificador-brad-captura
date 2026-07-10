@@ -169,6 +169,23 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
 .help-btn { height: 32px; width: 100%; background: #fff; border: 1.5px solid #e8eaed; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; color: #1a2332; transition: all .15s; }
 .help-btn:hover { border-color: #023631; color: #023631; }
 
+/* CHAT */
+.chat-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; background: #f4f6f9; border-radius: 12px; overflow: hidden; border: 1px solid #e8eaed; }
+.chat-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; max-height: 340px; }
+.chat-loading { font-size: 11px; color: #9ca3af; text-align: center; padding: 20px 0; }
+.chat-bubble { max-width: 88%; padding: 8px 12px; border-radius: 12px; font-size: 12px; line-height: 1.45; word-break: break-word; }
+.chat-bubble.me { background: #023631; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-bubble.them { background: #fff; color: #1a2332; align-self: flex-start; border: 1px solid #e8eaed; border-bottom-left-radius: 4px; }
+.chat-bubble-time { font-size: 9px; margin-top: 3px; opacity: .6; }
+.chat-bubble.me .chat-bubble-time { text-align: right; }
+.chat-sender { font-size: 10px; font-weight: 700; color: #023631; margin-bottom: 2px; }
+.chat-input-row { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #e8eaed; background: #fff; align-items: flex-end; }
+.chat-input { flex: 1; border: 1.5px solid #e8eaed; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-family: inherit; resize: none; outline: none; line-height: 1.4; }
+.chat-input:focus { border-color: #023631; }
+.chat-send { width: 34px; height: 34px; border-radius: 8px; background: #023631; border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .15s; }
+.chat-send:hover { background: #075056; }
+.chat-empty { font-size: 11px; color: #9ca3af; text-align: center; padding: 20px 0; line-height: 1.6; }
+
 /* ALERTS */
 .alert { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
 .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
@@ -232,11 +249,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
         <div class="rp-title">Resumo da seleção <span class="sum-badge" id="rp-cnt">0 acessos</span></div>
         <div id="rp-sum-body"><div class="sum-empty">Nenhum acesso selecionado.</div></div>
       </div>
-      <div class="rp-sec">
-        <div class="help-card">
-          <div class="help-title">&#129310; Precisa de ajuda?</div>
-          <div class="help-text">Fale com o suporte ou consulte nossa central de ajuda.</div>
-          <button class="help-btn">Abrir ajuda &#8599;</button>
+      <div class="rp-sec" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="rp-title">Suporte</div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chat-msgs"><div class="chat-loading">Carregando mensagens...</div></div>
+          <div class="chat-input-row">
+            <textarea class="chat-input" id="chat-input" placeholder="Digite sua mensagem..." rows="2" onkeydown="chatKeydown(event)"></textarea>
+            <button class="chat-send" onclick="sendChatMsg()" title="Enviar">&#10148;</button>
+          </div>
         </div>
       </div>
     </div>
@@ -318,7 +338,7 @@ async function load() {
   else if (acessoFields.length) totalSteps = 2;
   else totalSteps = 1;
 
-  if (acessoFields.length || regularFields.length > 2) document.getElementById('content-right').style.display = '';
+  document.getElementById('content-right').style.display = '';
   if (acessoFields.length) document.getElementById('rp-sum-sec').style.display = '';
 
   renderStep();
@@ -714,7 +734,61 @@ function renderRightPanel() {
   if (body) body.innerHTML = any ? sumHtml : '<div class="sum-empty">Nenhum acesso selecionado.</div>';
 }
 
+// Chat support
+let chatMessages = [];
+async function loadChat() {
+  try {
+    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) return;
+    chatMessages = data.messages || [];
+    renderChat();
+  } catch(e) {}
+}
+
+function renderChat() {
+  const el = document.getElementById('chat-msgs');
+  if (!el) return;
+  if (!chatMessages.length) {
+    el.innerHTML = `<div class="chat-empty">Nenhuma mensagem ainda.<br>Envie uma mensagem para o suporte.</div>`;
+    return;
+  }
+  el.innerHTML = chatMessages.map(m => {
+    const isMe = m.from !== 'admin';
+    const time = new Date(m.sent_at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+    return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">
+      ${!isMe ? `<div class="chat-sender">${esc(m.user_name||'Suporte')}</div>` : ''}
+      <div class="chat-bubble ${isMe?'me':'them'}">
+        ${esc(m.message)}
+        <div class="chat-bubble-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = (input.value||'').trim();
+  if (!msg) return;
+  input.value = '';
+  try {
+    const res = await fetch('/api/support', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    if (data.success) { chatMessages.push(data.msg); renderChat(); }
+  } catch(e) {}
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMsg(); }
+}
+
 load();
+loadChat();
 </script>
 </body>
 </html>
