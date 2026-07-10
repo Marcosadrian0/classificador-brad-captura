@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — SBK Forms</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/public/style.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <nav class="topbar">
@@ -50,7 +50,7 @@
     <div class="card">
       <div class="table-wrap">
         <table id="users-table">
-          <thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
+          <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
           <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Carregando...</td></tr></tbody>
         </table>
       </div>
@@ -112,11 +112,11 @@
     <div id="user-modal-alert" style="display:none" class="alert alert-error"></div>
     <div class="form-group">
       <label class="form-label">Nome completo <span class="req">*</span></label>
-      <input class="form-input" id="um-name" placeholder="Nome do colaborador">
+      <input class="form-input" id="um-name" placeholder="Nome do colaborador" oninput="autoUsername()">
     </div>
     <div class="form-group">
-      <label class="form-label">Email <span class="req">*</span></label>
-      <input class="form-input" type="email" id="um-email" placeholder="email@sbk.com.br">
+      <label class="form-label">Usuário (login) <span class="req">*</span></label>
+      <input class="form-input" type="text" id="um-email" placeholder="nome.sobrenome" autocomplete="off">
     </div>
     <div class="form-group">
       <label class="form-label">Senha <span class="req" id="um-pwd-req">*</span></label>
@@ -179,8 +179,8 @@ async function loadForms() {
       <td>${f.response_count}</td>
       <td style="white-space:nowrap">${new Date(f.created_at).toLocaleDateString('pt-BR')}</td>
       <td style="white-space:nowrap">
-        <button class="btn btn-secondary btn-sm" onclick="editForm(${f.id})">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteForm(${f.id},'${esc(f.title)}')" style="margin-left:4px">Excluir</button>
+        <button class="btn btn-secondary btn-sm" onclick="editForm('${f.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteForm('${f.id}','${esc(f.title)}')" style="margin-left:4px">Excluir</button>
       </td>
     </tr>`).join('')}</tbody>
   </table></div></div>`;
@@ -212,7 +212,7 @@ async function editForm(id) {
   document.getElementById('fields-list').innerHTML = '';
   document.getElementById('form-modal-alert').style.display = 'none';
   f.fields.forEach(field => addField(field));
-  loadAssignUsers(f.assignments.map(u => u.id));
+  loadAssignUsers(f.assigned_user_ids || []);
   document.getElementById('form-modal').classList.add('open');
 }
 
@@ -245,6 +245,7 @@ function addField(existing=null) {
         <option value="radio" ${type==='radio'?'selected':''}>Escolha única</option>
         <option value="checkbox" ${type==='checkbox'?'selected':''}>Múltipla escolha</option>
         <option value="select" ${type==='select'?'selected':''}>Lista suspensa</option>
+        <option value="acesso" ${type==='acesso'?'selected':''}>Acesso a sistema</option>
       </select>
       <input class="form-input" id="fl-${idx}" placeholder="Rótulo do campo" value="${esc(existing?.label||'')}" style="flex:1">
       <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#023631;cursor:pointer;flex-shrink:0">
@@ -267,6 +268,7 @@ function onTypeChange(idx) {
     optEl.style.display = 'flex';
   } else {
     optEl.style.display = 'none';
+    optEl.innerHTML = '';
   }
 }
 
@@ -287,9 +289,10 @@ function collectFields() {
     const type = document.getElementById(`ft-${idx}`).value;
     const label = document.getElementById(`fl-${idx}`).value.trim();
     const required = document.getElementById(`fr-${idx}`).checked;
-    const options = [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
-      .map(i => i.value.trim()).filter(Boolean);
-    return { label, type, required, options: options.length ? options : null };
+    const options = type === 'acesso' ? null :
+      [...document.querySelectorAll(`#fopts-${idx} input[type=text], #fopts-${idx} input:not([type])`)]
+        .map(i => i.value.trim()).filter(Boolean);
+    return { label, type, required, options: options?.length ? options : null };
   }).filter(f => f.label);
 }
 
@@ -301,7 +304,7 @@ async function saveForm() {
   if (!title) { alertEl.textContent='Título é obrigatório'; alertEl.style.display='block'; return; }
 
   const fields = collectFields();
-  const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => Number(i.dataset.uid));
+  const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => i.dataset.uid);
   const description = document.getElementById('fm-desc').value.trim();
 
   btn.textContent = 'Salvando...'; btn.disabled = true;
@@ -336,12 +339,12 @@ async function loadUsers() {
   if (!data.users?.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#4A545E;padding:24px">Nenhum usuário cadastrado.</td></tr>`; return; }
   tbody.innerHTML = data.users.map(u => `<tr>
     <td><strong>${esc(u.name)}</strong></td>
-    <td>${esc(u.email)}</td>
+    <td>${esc(u.username || u.email)}</td>
     <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
     <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
     <td style="white-space:nowrap">
       <button class="btn btn-secondary btn-sm" onclick="openUserModal(${JSON.stringify(u).replace(/"/g,'&quot;')})">Editar</button>
-      ${u.id !== me.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${esc(u.name)}')" style="margin-left:4px">Excluir</button>` : ''}
+      ${u.id !== me.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:4px">Excluir</button>` : ''}
     </td>
   </tr>`).join('');
 }
@@ -350,7 +353,7 @@ function openUserModal(user=null) {
   editingUserId = user?.id || null;
   document.getElementById('user-modal-title').textContent = user ? 'Editar usuário' : 'Novo usuário';
   document.getElementById('um-name').value = user?.name || '';
-  document.getElementById('um-email').value = user?.email || '';
+  document.getElementById('um-email').value = user?.username || user?.email || '';
   document.getElementById('um-password').value = '';
   document.getElementById('um-role').value = user?.role || 'user';
   document.getElementById('user-modal-alert').style.display = 'none';
@@ -361,6 +364,12 @@ function openUserModal(user=null) {
   document.getElementById('user-modal').classList.add('open');
 }
 
+function autoUsername() {
+  if (editingUserId) return;
+  const name = document.getElementById('um-name').value.trim();
+  const parts = name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/\s+/);
+  if (parts.length >= 2) document.getElementById('um-email').value = parts[0] + '.' + parts[parts.length - 1];
+}
 function closeUserModal() { document.getElementById('user-modal').classList.remove('open'); }
 
 async function saveUser() {
@@ -371,7 +380,7 @@ async function saveUser() {
   const email = document.getElementById('um-email').value.trim();
   const password = document.getElementById('um-password').value;
   const role = document.getElementById('um-role').value;
-  if (!name||!email) { alertEl.textContent='Nome e email são obrigatórios'; alertEl.style.display='block'; return; }
+  if (!name||!email) { alertEl.textContent='Nome e usuário são obrigatórios'; alertEl.style.display='block'; return; }
   if (!editingUserId && !password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
 
   btn.textContent='Salvando...'; btn.disabled=true;
@@ -439,7 +448,18 @@ async function loadResponses() {
       <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
       ${fields.map(f => {
         const v = r.values[f.id] || '';
-        return `<td>${esc(v.includes('||') ? v.split('||').join(', ') : v)}</td>`;
+        let display = v;
+        if (f.field_type === 'acesso' && v.includes('||')) {
+          const parts = v.split('||');
+          if (parts[0] === 'SIM') {
+            display = parts[1] ? `Acesso: SIM / Funciona: ${parts[1]}${parts[2] ? ' / Obs: '+parts[2] : ''}` : 'Acesso: SIM';
+          } else {
+            display = `Acesso: NAO${parts[1] ? ' / Obs: '+parts[1] : ''}`;
+          }
+        } else if (v.includes('||')) {
+          display = v.split('||').join(', ');
+        }
+        return `<td>${esc(display)}</td>`;
       }).join('')}
     </tr>`).join('')}
     </tbody></table></div></div>`;

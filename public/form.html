@@ -4,8 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Formulário — SBK Forms</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/public/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  /* pill radio */
+  .pill-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .pill-opt { position: relative; }
+  .pill-opt input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .pill-opt label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 18px; border-radius: 99px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid #d1d5db; background: #fff; color: #4A545E;
+    cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .pill-opt input[type=radio]:checked + label {
+    background: #023631; border-color: #023631; color: #ECEFF3;
+  }
+  .pill-opt label:hover { border-color: #075056; color: #075056; }
+  .pill-opt input[type=radio]:checked + label:hover { color: #ECEFF3; }
+
+  /* acesso field */
+  .acesso-card {
+    background: #fff; border: 1.5px solid #e0e3e8; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 12px; transition: border-color .15s;
+  }
+  .acesso-card:focus-within { border-color: #075056; }
+  .acesso-label { font-size: 13px; font-weight: 600; color: #023631; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .acesso-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .acesso-sub { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f2f5; }
+  .acesso-sub-label { font-size: 11px; font-weight: 600; color: #4A545E; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .obs-area { margin-top: 12px; }
+  .obs-area textarea { background: #fafafa; }
+
+  /* field block improvements */
+  .field-block { margin-bottom: 24px; }
+  .field-label-text { font-size: 13px; font-weight: 600; color: #023631; margin-bottom: 10px; display: block; }
+  .req { color: #dc2626; }
+</style>
 </head>
 <body>
 <nav class="topbar">
@@ -19,7 +54,7 @@
   </div>
 </nav>
 
-<div class="page" style="max-width:680px">
+<div class="page" style="max-width:700px">
   <div id="content">
     <div class="empty-state"><p>Carregando...</p></div>
   </div>
@@ -37,6 +72,61 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   let formData = null;
+
+  function acessoChange(radio, fieldId) {
+    const val = radio.value;
+    const funEl = document.getElementById(`funciona_${fieldId}`);
+    const obsEl = document.getElementById(`obs_${fieldId}`);
+    funEl.style.display = val === 'SIM' ? 'block' : 'none';
+    obsEl.style.display = val === 'NÃO' ? 'block' : 'none';
+    if (val === 'SIM') {
+      document.querySelectorAll(`input[name="func_${fieldId}"]`).forEach(r => r.checked = false);
+      obsEl.style.display = 'none';
+    }
+  }
+
+  function funcionaChange(radio, fieldId) {
+    document.getElementById(`obs_${fieldId}`).style.display = radio.value === 'NÃO' ? 'block' : 'none';
+  }
+
+  function renderAcesso(f, val) {
+    const req = f.required ? '<span class="req">*</span>' : '';
+    const parts = val ? val.split('||') : [];
+    const temAcesso = parts[0] || '';
+    const funciona = parts[1] || '';
+    const obs = (parts[0] === 'SIM' ? parts[2] : parts[1]) || '';
+
+    const showFunciona = temAcesso === 'SIM';
+    const showObs = temAcesso === 'NÃO' || funciona === 'NÃO';
+
+    return `<div class="acesso-card">
+      <div class="acesso-label">${esc(f.label)} ${req}</div>
+      <div>
+        <div class="acesso-sub-label">Tem acesso?</div>
+        <div class="pill-group">
+          ${['SIM','NÃO'].map(o => `
+            <div class="pill-opt">
+              <input type="radio" name="ac_${f.id}" id="ac_${f.id}_${o}" value="${o}" ${temAcesso===o?'checked':''} onchange="acessoChange(this,'${f.id}')">
+              <label for="ac_${f.id}_${o}">${o}</label>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div id="funciona_${f.id}" class="acesso-sub" style="display:${showFunciona?'block':'none'}">
+        <div class="acesso-sub-label">Funciona?</div>
+        <div class="pill-group">
+          ${['SIM','NÃO'].map(o => `
+            <div class="pill-opt">
+              <input type="radio" name="func_${f.id}" id="func_${f.id}_${o}" value="${o}" ${funciona===o?'checked':''} onchange="funcionaChange(this,'${f.id}')">
+              <label for="func_${f.id}_${o}">${o}</label>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div id="obs_${f.id}" class="obs-area" style="display:${showObs?'block':'none'}">
+        <div class="acesso-sub-label" style="margin-top:12px">Observação</div>
+        <textarea class="form-textarea" id="obstext_${f.id}" placeholder="Descreva o que acontece...">${esc(obs)}</textarea>
+      </div>
+    </div>`;
+  }
 
   async function load() {
     const res = await fetch(`/api/forms/${formId}`, { headers: { Authorization: 'Bearer ' + token } });
@@ -58,10 +148,13 @@
       const req = f.required ? '<span class="req"> *</span>' : '';
       const val = values[f.id] || '';
 
+      if (f.field_type === 'acesso') {
+        return renderAcesso(f, val);
+      }
       if (f.field_type === 'text') {
         return `<div class="field-block">
           <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
-          <input class="form-input" type="text" id="f${f.id}" data-id="${f.id}" data-type="text" value="${esc(val)}" ${already ? '' : ''}>
+          <input class="form-input" type="text" id="f${f.id}" data-id="${f.id}" data-type="text" value="${esc(val)}">
         </div>`;
       }
       if (f.field_type === 'textarea') {
@@ -74,11 +167,11 @@
         const opts = f.options || ['Sim', 'Não'];
         return `<div class="field-block">
           <span class="field-label-text">${esc(f.label)}${req}</span>
-          <div class="radio-group">${opts.map(o => `
-            <label class="radio-opt">
-              <input type="radio" name="f${f.id}" data-id="${f.id}" data-type="radio" value="${esc(o)}" ${val === o ? 'checked' : ''}>
-              ${esc(o)}
-            </label>`).join('')}
+          <div class="pill-group">${opts.map(o => `
+            <div class="pill-opt">
+              <input type="radio" name="f${f.id}" id="fopt_${f.id}_${esc(o)}" data-id="${f.id}" data-type="radio" value="${esc(o)}" ${val===o?'checked':''}>
+              <label for="fopt_${f.id}_${esc(o)}">${esc(o)}</label>
+            </div>`).join('')}
           </div>
         </div>`;
       }
@@ -89,7 +182,7 @@
           <span class="field-label-text">${esc(f.label)}${req}</span>
           <div class="check-group">${opts.map(o => `
             <label class="check-opt">
-              <input type="checkbox" data-id="${f.id}" data-type="checkbox" value="${esc(o)}" ${checked.includes(o) ? 'checked' : ''}>
+              <input type="checkbox" data-id="${f.id}" data-type="checkbox" value="${esc(o)}" ${checked.includes(o)?'checked':''}>
               ${esc(o)}
             </label>`).join('')}
           </div>
@@ -101,7 +194,7 @@
           <label class="field-label-text" for="f${f.id}">${esc(f.label)}${req}</label>
           <select class="form-select" id="f${f.id}" data-id="${f.id}" data-type="select">
             <option value="">Selecione...</option>
-            ${opts.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}
+            ${opts.map(o => `<option value="${esc(o)}" ${val===o?'selected':''}>${esc(o)}</option>`).join('')}
           </select>
         </div>`;
       }
@@ -113,17 +206,17 @@
       <div class="page-title">${esc(formData.title)}</div>
       ${formData.description ? `<div class="page-sub">${esc(formData.description)}</div>` : '<div style="margin-bottom:24px"></div>'}
       <div id="form-alert" style="display:none" class="alert"></div>
-      <div class="card">
-        <form id="the-form" onsubmit="submit(event)">
+      <div class="card" style="padding:28px 28px">
+        <form id="the-form" onsubmit="submitForm(event)">
           ${fieldsHtml}
-          <div style="margin-top:8px">
-            <button class="btn btn-primary" type="submit" id="submit-btn">Enviar respostas</button>
+          <div style="margin-top:16px">
+            <button class="btn btn-primary" type="submit" id="submit-btn" style="padding:11px 28px">Enviar respostas</button>
           </div>
         </form>
       </div>`;
   }
 
-  async function submit(e) {
+  async function submitForm(e) {
     e.preventDefault();
     const alertEl = document.getElementById('form-alert');
     const btn = document.getElementById('submit-btn');
@@ -133,7 +226,21 @@
     let valid = true;
 
     formData.fields.forEach(f => {
-      if (f.field_type === 'radio') {
+      if (f.field_type === 'acesso') {
+        const acesso = document.querySelector(`input[name="ac_${f.id}"]:checked`);
+        if (f.required && !acesso) { valid = false; return; }
+        if (acesso) {
+          if (acesso.value === 'SIM') {
+            const funciona = document.querySelector(`input[name="func_${f.id}"]:checked`);
+            if (f.required && !funciona) { valid = false; return; }
+            const obs = document.getElementById(`obstext_${f.id}`)?.value || '';
+            values[f.id] = `SIM||${funciona?.value || ''}${funciona?.value === 'NÃO' ? '||' + obs : ''}`;
+          } else {
+            const obs = document.getElementById(`obstext_${f.id}`)?.value || '';
+            values[f.id] = `NÃO||${obs}`;
+          }
+        }
+      } else if (f.field_type === 'radio') {
         const checked = document.querySelector(`input[name="f${f.id}"]:checked`);
         if (f.required && !checked) { valid = false; return; }
         if (checked) values[f.id] = checked.value;
@@ -153,6 +260,7 @@
       alertEl.textContent = 'Preencha todos os campos obrigatórios.';
       alertEl.className = 'alert alert-error';
       alertEl.style.display = 'block';
+      alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
