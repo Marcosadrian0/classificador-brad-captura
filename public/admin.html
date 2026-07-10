@@ -212,7 +212,7 @@ async function editForm(id) {
   document.getElementById('fields-list').innerHTML = '';
   document.getElementById('form-modal-alert').style.display = 'none';
   f.fields.forEach(field => addField(field));
-  loadAssignUsers(f.assignments.map(u => u.id));
+  loadAssignUsers(f.assigned_user_ids || []);
   document.getElementById('form-modal').classList.add('open');
 }
 
@@ -301,7 +301,7 @@ async function saveForm() {
   if (!title) { alertEl.textContent='Título é obrigatório'; alertEl.style.display='block'; return; }
 
   const fields = collectFields();
-  const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => Number(i.dataset.uid));
+  const userIds = [...document.querySelectorAll('#assign-users input[type=checkbox]:checked')].map(i => i.dataset.uid);
   const description = document.getElementById('fm-desc').value.trim();
 
   btn.textContent = 'Salvando...'; btn.disabled = true;
