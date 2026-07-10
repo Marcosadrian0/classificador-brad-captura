@@ -1,8 +1,9 @@
 {
+  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/", "destination": "/public/login.html" },
-    { "source": "/dashboard", "destination": "/public/dashboard.html" },
-    { "source": "/form", "destination": "/public/form.html" },
-    { "source": "/admin", "destination": "/public/admin.html" }
+    { "source": "/", "destination": "/login.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/form", "destination": "/form.html" },
+    { "source": "/admin", "destination": "/admin.html" }
   ]
 }
