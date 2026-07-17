@@ -741,6 +741,8 @@ let dashPage = 1;
 
 async function loadAll() {
   const [fd, ud] = await Promise.all([api('/api/forms'), api('/api/users')]);
+  if (!fd.success) throw new Error(fd.error || 'Falha ao carregar formulários');
+  if (!ud.success) throw new Error(ud.error || 'Falha ao carregar usuários');
   allForms = fd.forms || [];
   allUsers = ud.users || [];
   return { forms: allForms, users: allUsers, responses: allResponses };
@@ -748,7 +750,16 @@ async function loadAll() {
 
 // ── DASHBOARD ────────────────────────────────────────────────
 async function loadDashboard() {
-  const { forms, users, responses } = await loadAll();
+  let loadResult;
+  try { loadResult = await loadAll(); } catch(e) {
+    document.getElementById('dash-forms-list').innerHTML = `<div class="alert alert-error">Erro ao carregar dados: ${esc(e.message)}. Verifique o token do GitHub nas configurações do Vercel.</div>`;
+    return;
+  }
+  if (loadResult.error) {
+    document.getElementById('dash-forms-list').innerHTML = `<div class="alert alert-error">Erro da API: ${esc(loadResult.error)}</div>`;
+    return;
+  }
+  const { forms, users, responses } = loadResult;
 
   // stats
   const activeForms = forms.filter(f => f.is_active);
