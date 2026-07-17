@@ -15,7 +15,8 @@
     "email": "marcos.moraes",
     "password_hash": "$2a$10$kU4Ek7AWU44Mii/fAufjb.1WHyHx08FQZfgm8GEgOVmutBbTjf5Wy",
     "role": "user",
-    "created_at": "2026-07-10T18:32:14.266Z"
+    "created_at": "2026-07-10T18:32:14.266Z",
+    "manager": "marcos"
   },
   {
     "id": "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
