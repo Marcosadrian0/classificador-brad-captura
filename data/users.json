@@ -340,5 +340,59 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "7c160f9c-3289-4f0d-b291-233fab410823",
+    "name": "Carolayne Nascimento Silva",
+    "username": "carolayne.silva",
+    "email": "carolayne.silva",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "9e9b07ef-0546-4e7b-a279-d79c601dd2f0",
+    "name": "Francisco Jefferson Ribeiro Santos",
+    "username": "francisco.santos",
+    "email": "francisco.santos",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "0cdd1b8e-2e20-4ee4-8ad7-6bb499ed6e9e",
+    "name": "Najara Claudia De Souza Ramim",
+    "username": "najara.ramim",
+    "email": "najara.ramim",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "2d7eb974-625c-49cc-9bad-ec58a3f1ffda",
+    "name": "Priscila Cesar Correia",
+    "username": "priscila.correia",
+    "email": "priscila.correia",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "ad76b891-7737-4113-928d-3118a6ebf1e6",
+    "name": "Solange Souza Oliveira",
+    "username": "solange.oliveira",
+    "email": "solange.oliveira",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
+  },
+  {
+    "id": "b39dac0e-cf09-43d0-bd41-a4df5979006a",
+    "name": "Vinicius Jorge Ribeiro Da Silva",
+    "username": "vinicius.silva",
+    "email": "vinicius.silva",
+    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
+    "role": "user",
+    "created_at": "2026-07-17T12:00:00.000Z"
   }
 ]
