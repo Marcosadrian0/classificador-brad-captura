@@ -23,7 +23,7 @@
     "username": "alice.teixeira",
     "email": "alice.teixeira",
     "password_hash": "$2a$10$036Y2jiuW93x9i4qyw2DieyanHlLEgG0nHm1ksGbW0yiJh9jsM96K",
-    "role": "user",
+    "role": "admin",
     "created_at": "2026-07-10T19:51:19.075Z"
   },
   {
