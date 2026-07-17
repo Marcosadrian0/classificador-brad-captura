@@ -660,7 +660,7 @@ async function saveDraft() {
   if (currentStep===1&&regularFields.length) collectRegular();
   const as = document.getElementById('autosave');
   try {
-    await fetch(`/api/forms/${formId}/respond`, {
+    await fetch(`/api/forms/${formId}`, {
       method:'POST',
       headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
       body: JSON.stringify({values})
@@ -677,7 +677,7 @@ async function submitForm() {
   const btn = document.getElementById('submit-btn');
   if (btn) { btn.textContent='Enviando...'; btn.disabled=true; }
   try {
-    const res = await fetch(`/api/forms/${formId}/respond`, {
+    const res = await fetch(`/api/forms/${formId}`, {
       method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
       body: JSON.stringify({values})
     });
