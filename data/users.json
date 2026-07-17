@@ -90,15 +90,6 @@
     "created_at": "2026-07-17T12:00:00.000Z"
   },
   {
-    "id": "f4660038-681e-425d-88b7-8b114901adde",
-    "name": "Fernanda Goncalves Matsuda",
-    "username": "fernanda.matsuda",
-    "email": "fernanda.matsuda",
-    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
-    "role": "user",
-    "created_at": "2026-07-17T12:00:00.000Z"
-  },
-  {
     "id": "bea1dc18-27e8-474c-8f9f-e12abbcb13cb",
     "name": "Gabriel Dimitry Bortolossi Junqueira",
     "username": "gabriel.junqueira",
