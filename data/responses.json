@@ -46,5 +46,23 @@
       "6d0c3216-9ea8-4c5c-b78a-a2d490590cdb": "11933791240",
       "ae47c5f3-e59e-42ff-9072-b1db39d060ac": "alice.teixeira@sbk.com.br"
     }
+  },
+  {
+    "id": "a93ef32d-df79-43bd-a411-7c6af8c7ca87",
+    "form_id": "6fd327b8-59e4-4c19-a2e4-b3a1232d8019",
+    "user_id": "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
+    "submitted_at": "2026-07-17T12:23:05.349Z",
+    "values": {
+      "8557a018-a2f5-406d-bff5-3c4afab947cb": "SIM||",
+      "6c36d626-b636-4d5f-9fdc-327dd4630229": "SIM||",
+      "f8f61da4-0dd7-44f8-9410-6087f26777e7": "NAO||Senha bloqueada",
+      "c29ce02d-0427-4dac-9076-534c8d549c22": "SIM||",
+      "92e96f57-29f9-4aa8-aa91-d8e20ab5961e": "SIM||",
+      "7b0c262f-c727-4e79-a590-367d8fc90c9f": "SIM||",
+      "9e28c856-7612-4356-8c61-d4e6282c1f89": "SIM||",
+      "da7890fa-be2f-428d-ba2a-56145c02e543": "NAO||NÃO LIBERA MAIS ACESSOS, DESCONSIDERAR.",
+      "29bb8499-9981-4e34-a8ca-81baa52b8db1": "SIM||",
+      "d5212882-f8f5-4222-aab2-97e2a03cde4d": "SIM||"
+    }
   }
 ]
