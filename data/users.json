@@ -298,16 +298,6 @@
     "manager": "alice"
   },
   {
-    "id": "2d7eb974-625c-49cc-9bad-ec58a3f1ffda",
-    "name": "Priscila Cesar Correia",
-    "username": "priscila.correia",
-    "email": "priscila.correia",
-    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
-    "role": "user",
-    "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
-  },
-  {
     "id": "393db2d0-bd28-4e4f-8155-e324b6dd1e33",
     "name": "Rafael Eduardo Pantaleoni",
     "username": "rafael.pantaleoni",
