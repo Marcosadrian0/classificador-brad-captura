@@ -268,16 +268,6 @@
     "manager": "marcos"
   },
   {
-    "id": "0cdd1b8e-2e20-4ee4-8ad7-6bb499ed6e9e",
-    "name": "Najara Claudia De Souza Ramim",
-    "username": "najara.ramim",
-    "email": "najara.ramim",
-    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
-    "role": "user",
-    "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
-  },
-  {
     "id": "2e2ebcf4-a9f8-4949-b722-5eba84bcc8eb",
     "name": "Nicole Lima Farias",
     "username": "nicole.farias",
