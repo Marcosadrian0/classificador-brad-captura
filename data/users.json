@@ -351,15 +351,6 @@
     "created_at": "2026-07-17T12:00:00.000Z"
   },
   {
-    "id": "2d7eb974-625c-49cc-9bad-ec58a3f1ffda",
-    "name": "Priscila Cesar Correia",
-    "username": "priscila.correia",
-    "email": "priscila.correia",
-    "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
-    "role": "user",
-    "created_at": "2026-07-17T12:00:00.000Z"
-  },
-  {
     "id": "ad76b891-7737-4113-928d-3118a6ebf1e6",
     "name": "Solange Souza Oliveira",
     "username": "solange.oliveira",
