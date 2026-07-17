@@ -23,6 +23,18 @@ module.exports = async (req, res) => {
       return res.json({ success: true, user: safe });
     }
 
+    if (req.method === 'PATCH') {
+      requireAdmin(req);
+      const { manager } = req.body || {};
+      const file = await read('users');
+      const idx = file.list.findIndex(u => u.id === id);
+      if (idx === -1) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+      file.list[idx] = { ...file.list[idx], manager: manager || null };
+      await write('users', file.list, file.sha, `manager: ${file.list[idx].email} -> ${manager || 'none'}`);
+      const { password_hash, ...safe } = file.list[idx];
+      return res.json({ success: true, user: safe });
+    }
+
     if (req.method === 'DELETE') {
       const caller = requireAdmin(req);
       if (caller.id === id) return res.status(400).json({ success: false, error: 'Não é possível excluir seu próprio usuário' });

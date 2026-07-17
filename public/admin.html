@@ -376,6 +376,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <a class="nav-item" data-panel="users" onclick="navTo('users')">
       <span class="nav-icon">&#128101;</span><span class="nav-label">Usuários</span>
     </a>
+    <a class="nav-item" data-panel="teams" onclick="navTo('teams')">
+      <span class="nav-icon">&#128119;</span><span class="nav-label">Equipes</span>
+    </a>
     <a class="nav-item" data-panel="support" onclick="navTo('support')" style="position:relative">
       <span class="nav-icon">&#128172;</span><span class="nav-label">Suporte</span>
       <span id="support-badge" style="display:none;position:absolute;top:7px;right:8px;min-width:17px;height:17px;background:#4ade80;border-radius:99px;font-size:10px;font-weight:700;color:#023631;display:none;align-items:center;justify-content:center;padding:0 4px" id="support-badge"></span>
@@ -549,6 +552,37 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       </div>
       <div id="responses-area">
         <div class="empty-state"><div class="empty-icon">&#128202;</div><p>Selecione um formulário para ver as respostas.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-teams">
+    <div class="inner-panel">
+      <div class="section-header">
+        <div class="inner-title">Equipes</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:start">
+        <div style="background:#fff;border:1px solid #e8eaed;border-radius:14px;overflow:hidden">
+          <div style="padding:14px 18px;border-bottom:1px solid #e8eaed;background:#023631;color:#fff">
+            <div style="font-weight:700;font-size:13px">Gestao Marcos</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px" id="team-marcos-count"></div>
+          </div>
+          <div id="team-marcos" style="padding:8px 0;min-height:60px"></div>
+        </div>
+        <div style="background:#fff;border:1px solid #e8eaed;border-radius:14px;overflow:hidden">
+          <div style="padding:14px 18px;border-bottom:1px solid #e8eaed;background:#075056;color:#fff">
+            <div style="font-weight:700;font-size:13px">Gestao Alice</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px" id="team-alice-count"></div>
+          </div>
+          <div id="team-alice" style="padding:8px 0;min-height:60px"></div>
+        </div>
+        <div style="background:#fff;border:1px solid #e8eaed;border-radius:14px;overflow:hidden">
+          <div style="padding:14px 18px;border-bottom:1px solid #e8eaed;background:#64748b;color:#fff">
+            <div style="font-weight:700;font-size:13px">Sem gestor</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px" id="team-none-count"></div>
+          </div>
+          <div id="team-none" style="padding:8px 0;min-height:60px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -743,6 +777,7 @@ function navTo(name) {
   if (name === 'forms') loadFormsPanel();
   if (name === 'users') loadUsers();
   if (name === 'responses') loadResponsesFormList();
+  if (name === 'teams') loadTeams();
   if (name === 'support') loadSupportPanel();
 }
 
@@ -1296,21 +1331,16 @@ loadDashboard();
 pollSupportNotif();
 
 // ── ASSIGN GROUPS ─────────────────────────────────────────────
-const GESTAO_MARCOS = new Set([
-  'ana.silva','carolayne.silva','clara.mizuno','francisco.santos',
-  'inacia.gomes','matheus.silva','najara.ramim','nicolly.artur',
-  'priscila.correia','rafael.pantaleoni','solange.oliveira',
-  'suelen.silva','vinicius.silva','yasmin.gandra'
-]);
-
 function selectGroup(group) {
   const checkboxes = document.querySelectorAll('#assign-users input[type=checkbox]');
   checkboxes.forEach(cb => {
-    const username = cb.dataset.username || '';
+    const uid = cb.dataset.uid || '';
+    const user = allUsers.find(u => u.id === uid);
+    const manager = user ? (user.manager || null) : null;
     if (group === 'todos') cb.checked = true;
     else if (group === 'nenhum') cb.checked = false;
-    else if (group === 'marcos') cb.checked = GESTAO_MARCOS.has(username);
-    else if (group === 'alice') cb.checked = !GESTAO_MARCOS.has(username);
+    else if (group === 'marcos') cb.checked = manager === 'marcos';
+    else if (group === 'alice') cb.checked = manager === 'alice';
   });
 }
 
@@ -1471,6 +1501,48 @@ async function pollSupportNotif() {
     }
   } catch(e) {}
   setTimeout(pollSupportNotif, 30000);
+}
+
+// ── EQUIPES ──────────────────────────────────────────────────
+async function loadTeams() {
+  const data = await api('/api/users');
+  if (!data.success) return;
+  const users = data.users.filter(u => u.role !== 'admin');
+
+  const groups = { marcos: [], alice: [], none: [] };
+  for (const u of users) {
+    const g = u.manager === 'marcos' ? 'marcos' : u.manager === 'alice' ? 'alice' : 'none';
+    groups[g].push(u);
+  }
+
+  const labels = { marcos: 'marcos', alice: 'alice', none: 'none' };
+  for (const [key, list] of Object.entries(groups)) {
+    const countEl = document.getElementById(`team-${key}-count`);
+    if (countEl) countEl.textContent = `${list.length} analista${list.length !== 1 ? 's' : ''}`;
+    const container = document.getElementById(`team-${key}`);
+    if (!container) continue;
+    container.innerHTML = list.length === 0
+      ? `<div style="padding:12px 18px;color:#9ca3af;font-size:12px">Nenhum analista</div>`
+      : list.sort((a, b) => a.name.localeCompare(b.name)).map(u => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #f1f3f5;gap:8px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#1a2332">${esc(u.name)}</div>
+            <div style="font-size:11px;color:#6b7280">${esc(u.username)}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            ${key !== 'marcos' ? `<button onclick="moveUser('${u.id}','marcos')" style="font-size:10px;padding:3px 7px;border:none;border-radius:6px;background:#023631;color:#fff;cursor:pointer">Marcos</button>` : ''}
+            ${key !== 'alice' ? `<button onclick="moveUser('${u.id}','alice')" style="font-size:10px;padding:3px 7px;border:none;border-radius:6px;background:#075056;color:#fff;cursor:pointer">Alice</button>` : ''}
+            ${key !== 'none' ? `<button onclick="moveUser('${u.id}',null)" style="font-size:10px;padding:3px 7px;border:none;border-radius:6px;background:#e5e7eb;color:#374151;cursor:pointer">Remover</button>` : ''}
+          </div>
+        </div>`).join('');
+  }
+}
+
+async function moveUser(userId, manager) {
+  try {
+    await api(`/api/users/${userId}`, { method: 'PATCH', body: JSON.stringify({ manager }) });
+    await loadTeams();
+  } catch (e) { alert(e.message); }
 }
 
 // ── SUPPORT CHAT ──────────────────────────────────────────────
