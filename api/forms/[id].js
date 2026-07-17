@@ -1,5 +1,18 @@
+const { randomUUID } = require('crypto');
 const { requireAdmin, verifyToken, apiError } = require('../../lib/auth');
 const { read, write } = require('../../lib/storage');
+
+function evalTrigger(trigger, values, fields) {
+  const { condition, field_ids = [] } = trigger;
+  const isNao = v => {
+    const s = String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().split('||')[0];
+    return s === 'NAO' || s === 'NÃO';
+  };
+  const targets = field_ids.length ? fields.filter(f => field_ids.includes(f.id)) : fields;
+  if (condition === 'any_nao') return targets.some(f => isNao(values[f.id]));
+  if (condition === 'all_nao') return targets.every(f => isNao(values[f.id]));
+  return false;
+}
 
 module.exports = async (req, res) => {
   const { id } = req.query;
@@ -24,6 +37,50 @@ module.exports = async (req, res) => {
       return res.json({ success: true, form: { ...form, myResponse } });
     }
 
+    if (req.method === 'POST') {
+      // Submit form response
+      const user = verifyToken(req);
+      const { list: forms, sha: formsSha } = await read('forms');
+      const form = forms.find(f => f.id === id);
+      if (!form) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
+
+      if (user.role !== 'admin' && !(form.assigned_user_ids || []).includes(user.id)) {
+        return res.status(403).json({ success: false, error: 'Sem acesso a este formulário' });
+      }
+
+      const { values = {} } = req.body || {};
+      const normalized = {};
+      for (const [k, v] of Object.entries(values)) {
+        normalized[k] = Array.isArray(v) ? v.join('||') : String(v ?? '');
+      }
+
+      const respFile = await read('responses');
+      const filtered = respFile.list.filter(r => !(r.form_id === id && r.user_id === user.id));
+      const response = {
+        id: randomUUID(), form_id: id, user_id: user.id,
+        submitted_at: new Date().toISOString(), values: normalized
+      };
+      await write('responses', [...filtered, response], respFile.sha, `response: ${user.email || user.id} -> "${form.title}"`);
+
+      const triggered = [];
+      for (const trigger of (form.triggers || [])) {
+        if (!trigger.target_form_id) continue;
+        const targetForm = forms.find(f => f.id === trigger.target_form_id);
+        if (!targetForm) continue;
+        if (evalTrigger(trigger, normalized, form.fields || [])) {
+          if (!(targetForm.assigned_user_ids || []).includes(user.id)) {
+            targetForm.assigned_user_ids = [...(targetForm.assigned_user_ids || []), user.id];
+            triggered.push({ id: targetForm.id, title: targetForm.title });
+          }
+        }
+      }
+      if (triggered.length) {
+        await write('forms', forms, formsSha, `trigger: auto-assign to ${user.email || user.id}`);
+      }
+
+      return res.json({ success: true, response, triggered });
+    }
+
     if (req.method === 'PUT') {
       requireAdmin(req);
       const { title, description, is_active, userIds, triggers } = req.body || {};
@@ -46,7 +103,7 @@ module.exports = async (req, res) => {
       const form = formsFile.list.find(f => f.id === id);
       if (!form) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
 
-      const [responsesFile] = await Promise.all([read('responses')]);
+      const responsesFile = await read('responses');
       await Promise.all([
         write('forms', formsFile.list.filter(f => f.id !== id), formsFile.sha, `delete: formulário "${form.title}"`),
         write('responses', responsesFile.list.filter(r => r.form_id !== id), responsesFile.sha, `delete: respostas do formulário "${form.title}"`)
