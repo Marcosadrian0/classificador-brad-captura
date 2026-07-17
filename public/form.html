@@ -681,7 +681,9 @@ async function submitForm() {
       method:'POST', headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
       body: JSON.stringify({values})
     });
-    const d = await res.json();
+    const text = await res.text();
+    let d;
+    try { d = JSON.parse(text); } catch(_) { throw new Error('Erro do servidor ao salvar respostas. Tente novamente em instantes.'); }
     if (!d.success) throw new Error(d.error);
     if (d.triggered && d.triggered.length) {
       const names = d.triggered.map(t => `"${t.title}"`).join(', ');
