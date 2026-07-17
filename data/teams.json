@@ -1,0 +1,12 @@
+[
+  {
+    "id": "marcos",
+    "name": "Gestao Marcos",
+    "created_at": "2026-07-17T00:00:00.000Z"
+  },
+  {
+    "id": "alice",
+    "name": "Gestao Alice",
+    "created_at": "2026-07-17T00:00:00.000Z"
+  }
+]
