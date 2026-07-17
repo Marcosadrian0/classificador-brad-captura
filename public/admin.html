@@ -704,8 +704,12 @@ document.getElementById('user-initials').textContent = (me?.name || 'A').split('
 
 function logout() { localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user'); window.location.href = '/'; }
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function api(path, opts={}) {
-  return fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+token, ...(opts.headers||{}) } }).then(r=>r.json());
+async function api(path, opts={}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer '+token, ...(opts.headers||{}) } });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(_) {
+    throw new Error(`Servidor retornou erro ${res.status} em ${path}. Verifique o Vercel.`);
+  }
 }
 
 // ── SIDEBAR ──────────────────────────────────────────────────
