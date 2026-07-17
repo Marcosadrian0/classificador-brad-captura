@@ -752,7 +752,12 @@ async function loadAll() {
 async function loadDashboard() {
   let loadResult;
   try { loadResult = await loadAll(); } catch(e) {
-    document.getElementById('dash-forms-list').innerHTML = `<div class="alert alert-error">Erro ao carregar dados: ${esc(e.message)}. Verifique o token do GitHub nas configurações do Vercel.</div>`;
+    if (e.message && (e.message.includes('jwt') || e.message.includes('expired') || e.message.includes('autenticado'))) {
+      localStorage.removeItem('sbk_token'); localStorage.removeItem('sbk_user');
+      window.location.href = '/';
+      return;
+    }
+    document.getElementById('dash-forms-list').innerHTML = `<div class="alert alert-error">Erro ao carregar dados: ${esc(e.message)}</div>`;
     return;
   }
   if (loadResult.error) {
