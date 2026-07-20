@@ -1637,13 +1637,33 @@ async function runImport() {
 let lastSupportCount = 0;
 async function pollSupportNotif() {
   try {
-    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
-    const data = await res.json();
-    if (!data.success) return;
-    const msgs = data.messages || [];
-    // Find concluded thread user IDs
+    const [supportRes, formsRes] = await Promise.all([
+      fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } }),
+      fetch('/api/forms',   { headers: { Authorization: 'Bearer ' + token } })
+    ]);
+    const [sd, fd] = await Promise.all([supportRes.json(), formsRes.json()]);
+    if (!sd.success) return;
+
+    const msgs = sd.messages || [];
+    const forms = fd.forms || [];
+
+    // Build set of user IDs who have at least one form created by the current admin
+    const myFormUserIds = new Set(
+      forms
+        .filter(f => f.created_by === me.id)
+        .flatMap(f => f.assigned_user_ids || [])
+    );
+
     const concludedIds = new Set(msgs.filter(m => m.from === 'system' && m.concluded).map(m => m.target_user_id));
-    const unread = msgs.filter(m => m.from === 'user' && !m.read && !concludedIds.has(m.user_id)).length;
+
+    // Count unread messages only from users whose forms belong to me
+    const unread = msgs.filter(m =>
+      m.from === 'user' &&
+      !m.read &&
+      !concludedIds.has(m.user_id) &&
+      myFormUserIds.has(m.user_id)
+    ).length;
+
     const badge = document.getElementById('support-badge');
     if (badge) {
       if (unread > 0) {

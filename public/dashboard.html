@@ -102,6 +102,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
   <header class="topbar">
     <div class="topbar-spacer"></div>
     <div style="display:flex;align-items:center;gap:10px">
+      <a href="/form?id=__support__" id="support-topbar-btn" style="display:none;position:relative;text-decoration:none">
+        <button class="btn-logout" style="border-color:#023631;color:#023631;position:relative" title="Suporte">
+          &#128276; Suporte
+          <span id="dashboard-support-dot" style="display:none;position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#4ade80;border-radius:50%;border:2px solid #fff"></span>
+        </button>
+      </a>
       <button class="btn-logout" onclick="logout()">Sair</button>
       <button class="user-chip">
         <div class="user-av" id="u-av">M</div>
@@ -199,7 +205,37 @@ async function load() {
   `).join('')}</div>`;
 }
 
+// ── SUPPORT NOTIFICATION ──────────────────────────────────────
+const SUPPORT_SEEN_KEY = 'sbk_support_seen_' + (user?.id || '');
+
+async function checkDashboardSupportNotif() {
+  try {
+    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) return;
+    const msgs = data.messages || [];
+    const hasAny = msgs.some(m => m.from === 'admin');
+    const lastSeen = localStorage.getItem(SUPPORT_SEEN_KEY) || '1970-01-01';
+    const hasUnread = msgs.some(m => m.from === 'admin' && m.sent_at > lastSeen);
+    const btn = document.getElementById('support-topbar-btn');
+    const dot = document.getElementById('dashboard-support-dot');
+    if (hasAny && btn) btn.style.display = '';
+    // Show dot when form is assigned (user can send support) even without reply yet
+    if (!hasAny) {
+      const formsData = await fetch('/api/forms', { headers: { Authorization: 'Bearer ' + token } }).then(r=>r.json()).catch(()=>null);
+      if (formsData?.forms?.length && btn) btn.style.display = '';
+    }
+    if (dot) dot.style.display = hasUnread ? '' : 'none';
+    // Update href to first form so the link works
+    const formsRes = await fetch('/api/forms', { headers: { Authorization: 'Bearer ' + token } });
+    const fd = await formsRes.json();
+    if (fd.forms?.length && btn) btn.href = `/form?id=${fd.forms[0].id}`;
+  } catch(e) {}
+  setTimeout(checkDashboardSupportNotif, 30000);
+}
+
 load();
+checkDashboardSupportNotif();
 </script>
 </body>
 </html>

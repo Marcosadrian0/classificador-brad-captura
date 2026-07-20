@@ -218,7 +218,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <div class="topbar-spacer"></div>
     <div style="display:flex;align-items:center;gap:10px">
       <button class="icon-btn">&#63;</button>
-      <button class="icon-btn"><span>&#128276;</span><span class="notif-dot"></span></button>
+      <button class="icon-btn" id="bell-btn" onclick="openSupportPanel()" title="Suporte"><span>&#128276;</span><span class="notif-dot" id="support-notif-dot" style="display:none"></span></button>
       <button class="user-chip">
         <div class="user-av" id="u-av">M</div>
         <div>
@@ -790,8 +790,58 @@ function chatKeydown(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMsg(); }
 }
 
+// ── SUPPORT NOTIFICATIONS ──────────────────────────────────────
+const SUPPORT_SEEN_KEY = 'sbk_support_seen_' + (user?.id || '');
+
+function markSupportSeen() {
+  localStorage.setItem(SUPPORT_SEEN_KEY, new Date().toISOString());
+  document.getElementById('support-notif-dot').style.display = 'none';
+}
+
+function checkSupportUnread(msgs) {
+  const lastSeen = localStorage.getItem(SUPPORT_SEEN_KEY) || '1970-01-01';
+  const hasUnread = msgs.some(m => m.from === 'admin' && m.sent_at > lastSeen);
+  document.getElementById('support-notif-dot').style.display = hasUnread ? '' : 'none';
+}
+
+function openSupportPanel() {
+  // Scroll right panel to support section
+  const supportSection = document.querySelector('.rp-sec:last-child');
+  if (supportSection) supportSection.scrollIntoView({ behavior: 'smooth' });
+  markSupportSeen();
+}
+
+async function pollSupportUnread() {
+  try {
+    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (data.success) {
+      chatMessages = data.messages || [];
+      renderChat();
+      checkSupportUnread(chatMessages);
+    }
+  } catch(e) {}
+  setTimeout(pollSupportUnread, 30000);
+}
+
+// Override loadChat to also check unread
+async function loadChat() {
+  try {
+    const res = await fetch('/api/support', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await res.json();
+    if (!data.success) return;
+    chatMessages = data.messages || [];
+    renderChat();
+    checkSupportUnread(chatMessages);
+  } catch(e) {}
+}
+
+// Mark seen when user clicks the chat input
+document.getElementById('chat-input').addEventListener('focus', markSupportSeen);
+
 load();
 loadChat();
+setTimeout(pollSupportUnread, 30000);
 </script>
 </body>
 </html>
