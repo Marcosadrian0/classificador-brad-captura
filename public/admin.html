@@ -1524,6 +1524,18 @@ async function loadResponsesFormList() {
 
 let respAllData = null;
 
+async function exportResponsesCSV(formId, userId) {
+  const url = `/api/responses/export?formId=${formId}${userId ? '&userId=' + userId : ''}`;
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+  if (!res.ok) { alert('Erro ao exportar.'); return; }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `respostas_${formId}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
 async function loadResponses() {
   const formId = document.getElementById('resp-form-select').value;
   const area = document.getElementById('responses-area');
@@ -1562,8 +1574,9 @@ function renderResponsesTable() {
   const respondedIds = new Set(responses.map(r => r.user_id));
   const pending = assigned.filter(u => !respondedIds.has(u.id) && !respondedIds.has(String(u.id)));
 
+  const userFilter = userId ? `&userId=${userId}` : '';
   let html = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-    <a href="/api/responses/export?formId=${formId}" class="btn-new" target="_blank" style="text-decoration:none">&#11123; Exportar CSV</a>
+    <button class="btn-new" onclick="exportResponsesCSV('${formId}','${userId||''}')">&#11123; Exportar CSV</button>
     <span style="font-size:12px;color:#4A545E">${responses.length} resposta(s) de ${assigned.length} atribuídos</span>
   </div>`;
   if (!userId && pending.length) html += `<div class="alert alert-info" style="margin-bottom:16px">Sem resposta: ${pending.map(u=>`<strong>${esc(u.name)}</strong>`).join(', ')}</div>`;
