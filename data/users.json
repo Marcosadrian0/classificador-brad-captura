@@ -6,7 +6,8 @@
     "password_hash": "$2a$10$h3Xg/DcDugAt0WIRjaiGTeadW6wMDhywoCr2Eos061FjvJUW4QTGu",
     "role": "admin",
     "created_at": "2026-07-10T18:13:47.558Z",
-    "username": "marcos.oliveira"
+    "username": "marcos.oliveira",
+    "client": "Agibank"
   },
   {
     "id": "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
@@ -15,7 +16,8 @@
     "email": "alice.teixeira",
     "password_hash": "$2a$10$036Y2jiuW93x9i4qyw2DieyanHlLEgG0nHm1ksGbW0yiJh9jsM96K",
     "role": "admin",
-    "created_at": "2026-07-10T19:51:19.075Z"
+    "created_at": "2026-07-10T19:51:19.075Z",
+    "client": "Agibank"
   },
   {
     "id": "0fbe68ec-7c11-4c4c-a3a1-3f8778b14dbb",
@@ -25,7 +27,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "6f430382-f4e8-4d7d-8f7d-a08b46a57157",
@@ -35,7 +38,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "a0879d37-59be-4413-b890-8c0bdfba3a44",
@@ -45,7 +49,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "ac6023e2-8e30-43f9-861b-1f1d4852d769",
@@ -55,7 +60,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "7c160f9c-3289-4f0d-b291-233fab410823",
@@ -65,7 +71,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "cdcaf86d-e7c6-41ab-8f40-9795d71c95d9",
@@ -75,7 +82,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "3c8607e1-2885-42bd-91db-63bfc8e3695f",
@@ -85,7 +93,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "56e7699b-1dc6-4ad7-a765-0a9924162470",
@@ -95,7 +104,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "9e9b07ef-0546-4e7b-a279-d79c601dd2f0",
@@ -105,7 +115,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "bea1dc18-27e8-474c-8f9f-e12abbcb13cb",
@@ -115,7 +126,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "cc699c05-dc7b-4d34-babd-bf002d5cc4e3",
@@ -125,7 +137,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "b9d3be70-8322-4656-81f6-da49c6a7d67c",
@@ -135,7 +148,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "7a95e762-eef3-413e-bd14-27539eacab08",
@@ -145,7 +159,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "3f671971-09bb-45e0-9170-cfd73178b1c4",
@@ -155,7 +170,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "f3800ca8-72d3-4783-be7e-9f60e759fec4",
@@ -165,7 +181,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "0c6aade8-253a-4488-a720-cb6014934c23",
@@ -175,7 +192,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "7c6dbe2f-c30c-4d01-bd46-5cc35a326657",
@@ -185,7 +203,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "dba26324-6684-44ab-b94f-e52c14c51955",
@@ -195,7 +214,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "38b681b7-c39f-409a-8273-522ab466fcab",
@@ -205,7 +225,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "1cda7f61-75b1-4cd3-a931-17fdfc274e9e",
@@ -215,7 +236,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "ed03d154-8961-4edc-a4c3-4105f7e7410c",
@@ -225,7 +247,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "4712b0c9-eae3-4cc0-94d0-a498c4e3f30d",
@@ -235,7 +258,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "a7c54334-b931-457d-b603-f15b7699c821",
@@ -245,7 +269,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "99b9b102-90b4-4874-9763-832ae76d47cc",
@@ -255,7 +280,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "2e2ebcf4-a9f8-4949-b722-5eba84bcc8eb",
@@ -265,7 +291,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "553ef9d5-4b46-44d0-96e9-b0225315b443",
@@ -275,7 +302,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "0aab102b-8d54-48a7-a879-c1e46185845a",
@@ -285,7 +313,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "393db2d0-bd28-4e4f-8155-e324b6dd1e33",
@@ -295,7 +324,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "85bb9fdc-1563-4ee8-bddb-3570c2a7c13f",
@@ -305,7 +335,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "2487366c-3d73-4505-9ff6-6d1a08c6ec53",
@@ -315,7 +346,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "ad76b891-7737-4113-928d-3118a6ebf1e6",
@@ -325,7 +357,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "fa304c47-096d-46d0-8d93-7357d57d8b5a",
@@ -335,7 +368,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "2c6b3a83-c2ae-42c3-8106-a03f1f9e8b89",
@@ -345,7 +379,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "b39dac0e-cf09-43d0-bd41-a4df5979006a",
@@ -355,7 +390,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "12ced177-0b3a-4513-b4f0-fa8ef8ed99d6",
@@ -365,7 +401,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "31f0a28f-ff1b-4b92-929e-1ec1d13f6c89",
@@ -375,7 +412,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "ca4ea4e2-fe20-4bba-9d8d-6fe608711972",
@@ -385,7 +423,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "marcos"
+    "manager": "marcos",
+    "client": "Agibank"
   },
   {
     "id": "46de7f82-e1a7-4f77-8910-13bc6a2a9cb5",
@@ -395,7 +434,8 @@
     "password_hash": "$2a$10$3tZTldXR8qLMkn0UZLyTeeSCztvTsPHypkP.3SlW2PfpreUGOUg.q",
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
-    "manager": "alice"
+    "manager": "alice",
+    "client": "Agibank"
   },
   {
     "id": "d75ea7a6-a512-4e1d-85a6-55e28f463dce",
@@ -404,6 +444,7 @@
     "email": "joao.zocarato",
     "password_hash": "$2a$10$v2aOLfLfUsX3I.CopW14W.rLPZ/Ha6PZEjYPD3DsxEQGMp5pcwDHu",
     "role": "admin",
-    "created_at": "2026-07-20T18:47:32.591Z"
+    "created_at": "2026-07-20T18:47:32.591Z",
+    "client": "Agibank"
   }
 ]

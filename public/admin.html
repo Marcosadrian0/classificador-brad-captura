@@ -514,10 +514,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
           <button class="btn-new" onclick="openUserModal()">+ Novo usuário</button>
         </div>
       </div>
+      <!-- Abas Admin / Analistas -->
+      <div style="display:flex;gap:0;border-bottom:2px solid #e8eaed;margin-bottom:16px">
+        <button id="utab-analistas" onclick="switchUserTab('analistas')" style="padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px">Analistas</button>
+        <button id="utab-admins" onclick="switchUserTab('admins')" style="padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af">Administradores</button>
+      </div>
       <div class="table-card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Cliente</th><th>Criado em</th><th></th></tr></thead>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Cliente</th><th>Criado em</th><th></th></tr></thead>
             <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -667,7 +672,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       <div style="display:flex;gap:8px">
         <select class="form-select" id="um-client" onchange="onClientChange(this)" style="flex:1">
           <option value="">Sem cliente</option>
-          <option value="AGIBAN">AGIBAN</option>
+          <option value="Agibank">Agibank</option>
           <option value="BRADESCO">BRADESCO</option>
           <option value="EAGLE">EAGLE</option>
           <option value="__outro__">Outro...</option>
@@ -1238,15 +1243,31 @@ async function deleteForm(id, title) {
 
 // ── USERS ────────────────────────────────────────────────────
 let editingUserId = null;
-async function loadUsers() {
-  const data = await api('/api/users');
-  allUsers = data.users || [];
+let activeUserTab = 'analistas';
+
+function switchUserTab(tab) {
+  activeUserTab = tab;
+  ['analistas','admins'].forEach(t => {
+    const btn = document.getElementById(`utab-${t}`);
+    if (!btn) return;
+    btn.style.cssText = t === tab
+      ? 'padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px'
+      : 'padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af';
+  });
+  renderUsersTable();
+}
+
+function renderUsersTable() {
   const tbody = document.getElementById('users-body');
-  if (!allUsers.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:32px">Nenhum usuário cadastrado.</td></tr>`; return; }
-  tbody.innerHTML = allUsers.map(u => `<tr>
+  if (!tbody) return;
+  const filtered = allUsers.filter(u => activeUserTab === 'admins' ? u.role === 'admin' : u.role !== 'admin');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Nenhum ${activeUserTab === 'admins' ? 'administrador' : 'analista'} cadastrado.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(u => `<tr>
     <td><strong>${esc(u.name)}</strong></td>
     <td>${esc(u.username||u.email)}</td>
-    <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Analista'}</span></td>
     <td>${u.client ? `<span style="font-size:11px;font-weight:600;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px">${esc(u.client)}</span>` : '<span style="color:#9ca3af;font-size:11px">—</span>'}</td>
     <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
     <td style="white-space:nowrap">
@@ -1254,6 +1275,12 @@ async function loadUsers() {
       ${u.id!==me.id?`<button class="btn-action danger" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:6px">Excluir</button>`:''}
     </td>
   </tr>`).join('');
+}
+
+async function loadUsers() {
+  const data = await api('/api/users');
+  allUsers = data.users || [];
+  renderUsersTable();
 }
 
 function onClientChange(sel) {
@@ -1275,7 +1302,7 @@ function openUserModal(user=null) {
   if (user) { hint.textContent = 'Deixe em branco para manter a senha atual.'; req.style.display='none'; }
   else { hint.textContent = ''; req.style.display='inline'; }
   // client field
-  const knownClients = ['AGIBAN','BRADESCO','EAGLE'];
+  const knownClients = ['Agibank','BRADESCO','EAGLE'];
   const clientSel = document.getElementById('um-client');
   const clientCustom = document.getElementById('um-client-custom');
   const c = user?.client || '';
