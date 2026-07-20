@@ -73,7 +73,9 @@
 
       localStorage.setItem('sbk_token', data.token);
       localStorage.setItem('sbk_user', JSON.stringify(data.user));
-      window.location.href = data.user.role === 'admin' ? '/admin' : '/dashboard';
+      const next = sessionStorage.getItem('sbk_redirect');
+      sessionStorage.removeItem('sbk_redirect');
+      window.location.href = next || (data.user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
       alert.textContent = err.message;
       alert.style.display = 'block';

@@ -854,6 +854,7 @@ function renderFormsList() {
       </div>
       <div class="form-row-actions">
         <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
+        <button class="btn-action" onclick="copyFormLink('${f.id}',this)" title="Copiar link do formulário">&#128279; Copiar Link</button>
         <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
         <div class="dropdown" style="position:relative">
           <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
@@ -884,6 +885,17 @@ function toggleCtxMenu(btn) {
 }
 
 function viewForm(id) { window.open(`/form?id=${id}`, '_blank'); }
+
+function copyFormLink(id, btn) {
+  const url = `${location.origin}/form?id=${id}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '&#10003; Copiado!';
+    btn.style.background = '#4ade80';
+    btn.style.color = '#023631';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  }).catch(() => prompt('Copie o link:', url));
+}
 
 function renderActivity(forms, responses, users) {
   const items = [];
@@ -994,6 +1006,7 @@ async function loadFormsPanel() {
       </div>
       <div class="form-row-actions">
         <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
+        <button class="btn-action" onclick="copyFormLink('${f.id}',this)" title="Copiar link do formulário">&#128279; Copiar Link</button>
         <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
         <div class="dropdown" style="position:relative">
           <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>

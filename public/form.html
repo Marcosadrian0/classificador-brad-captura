@@ -261,7 +261,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
 <script>
 const token = localStorage.getItem('sbk_token');
 const user = JSON.parse(localStorage.getItem('sbk_user') || 'null');
-if (!token || !user) window.location.href = '/';
+if (!token || !user) { sessionStorage.setItem('sbk_redirect', location.href); window.location.href = '/'; }
 const formId = new URLSearchParams(location.search).get('id');
 if (!formId) window.location.href = '/dashboard';
 
