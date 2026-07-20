@@ -716,7 +716,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       <label class="form-label">Cliente</label>
       <div style="display:flex;gap:8px">
         <select class="form-select" id="um-client" onchange="onClientChange(this)" style="flex:1">
-          <option value="">Sem cliente</option>
           <option value="Agibank">Agibank</option>
           <option value="__outro__">Outro...</option>
         </select>
@@ -1461,12 +1460,13 @@ function openUserModal(user=null) {
   const req = document.getElementById('um-pwd-req');
   if (user) { hint.textContent = 'Deixe em branco para manter a senha atual.'; req.style.display='none'; }
   else { hint.textContent = ''; req.style.display='inline'; }
-  // client field
-  const knownClients = ['Agibank'];
+  // client field — build options from existing users
+  const knownClients = [...new Set(['Agibank', ...allUsers.map(u=>u.client).filter(Boolean)])];
   const clientSel = document.getElementById('um-client');
   const clientCustom = document.getElementById('um-client-custom');
-  const c = user?.client || '';
-  if (!c || knownClients.includes(c)) {
+  clientSel.innerHTML = knownClients.map(cl => `<option value="${esc(cl)}">${esc(cl)}</option>`).join('') + '<option value="__outro__">Outro...</option>';
+  const c = user?.client || 'Agibank';
+  if (knownClients.includes(c)) {
     clientSel.value = c; clientCustom.style.display='none'; clientCustom.value='';
   } else {
     clientSel.value = '__outro__'; clientCustom.style.display=''; clientCustom.value=c;
@@ -1743,8 +1743,15 @@ function openImportModal() {
   document.getElementById('import-save-btn').style.display = 'none';
   document.getElementById('import-alert').style.display = 'none';
   document.getElementById('import-file').value = '';
+  // populate client dropdown from existing users
+  const knownClients = [...new Set(['Agibank', ...allUsers.map(u=>u.client).filter(Boolean)])];
   const sel = document.getElementById('import-excel-client');
-  if (sel) { sel.value = 'Agibank'; onImportClientChange(sel); }
+  if (sel) {
+    sel.innerHTML = knownClients.map(cl => `<option value="${esc(cl)}">${esc(cl)}</option>`).join('') + '<option value="__outro__">Outro...</option>';
+    sel.value = 'Agibank';
+    onImportClientChange(sel);
+  }
+  document.getElementById('import-excel-client-other').style.display = 'none';
   document.getElementById('import-modal').classList.add('open');
 }
 function closeImportModal() { document.getElementById('import-modal').classList.remove('open'); }
