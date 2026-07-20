@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
       })
     ]);
 
-    const csv = [headers, ...csvRows].map(row => row.map(esc).join(',')).join('\r\n');
+    const csv = [headers, ...csvRows].map(row => row.map(esc).join(';')).join('\r\n');
     const filename = `${(form.title).replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
