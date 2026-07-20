@@ -1521,12 +1521,21 @@ async function loadTeams() {
 
   const columns = [...allTeams.map(t => ({ id: t.id, name: t.name, key: t.id })), { id: null, name: 'Sem equipe', key: '__none__' }];
 
+  // Build move dropdown options for a given current team id
+  function moveOptions(currentId, userId) {
+    const opts = allTeams.filter(t => t.id !== currentId)
+      .map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    const removeOpt = currentId !== null ? `<option value="__remove__">Remover da equipe</option>` : '';
+    return `<select onchange="moveUserFromSelect(this,'${userId}')" style="font-size:11px;padding:3px 6px;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#374151;cursor:pointer;max-width:140px">
+      <option value="">Mover para...</option>
+      ${opts}
+      ${removeOpt}
+    </select>`;
+  }
+
   grid.innerHTML = columns.map((col, ci) => {
     const list = users.filter(u => col.id === null ? !u.manager || !allTeams.find(t => t.id === u.manager) : u.manager === col.id);
     const color = col.id === null ? '#64748b' : (TEAM_COLORS[ci % TEAM_COLORS.length]);
-    const moveButtons = allTeams.filter(t => t.id !== col.id).map(t =>
-      `<button onclick="moveUser('USER_ID','${t.id}')" data-team="${t.id}" style="font-size:10px;padding:3px 7px;border:none;border-radius:6px;background:${TEAM_COLORS[allTeams.indexOf(t) % TEAM_COLORS.length]};color:#fff;cursor:pointer">${esc(t.name)}</button>`
-    ).join('');
     const rows = list.length === 0
       ? `<div style="padding:12px 18px;color:#9ca3af;font-size:12px">Nenhum analista</div>`
       : list.sort((a, b) => a.name.localeCompare(b.name)).map(u => `
@@ -1535,9 +1544,8 @@ async function loadTeams() {
             <div style="font-size:12px;font-weight:600;color:#1a2332">${esc(u.name)}</div>
             <div style="font-size:11px;color:#6b7280">${esc(u.username)}</div>
           </div>
-          <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
-            ${moveButtons.replaceAll('USER_ID', u.id)}
-            ${col.id !== null ? `<button onclick="moveUser('${u.id}',null)" style="font-size:10px;padding:3px 7px;border:none;border-radius:6px;background:#e5e7eb;color:#374151;cursor:pointer">Remover</button>` : ''}
+          <div style="flex-shrink:0">
+            ${moveOptions(col.id, u.id)}
           </div>
         </div>`).join('');
     return `
@@ -1559,6 +1567,14 @@ async function moveUser(userId, manager) {
     await api(`/api/users/${userId}`, { method: 'PATCH', body: JSON.stringify({ manager }) });
     await loadTeams();
   } catch (e) { alert(e.message); }
+}
+
+async function moveUserFromSelect(sel, userId) {
+  const val = sel.value;
+  if (!val) return;
+  sel.value = '';
+  const manager = val === '__remove__' ? null : val;
+  await moveUser(userId, manager);
 }
 
 function openNewTeamModal() {
