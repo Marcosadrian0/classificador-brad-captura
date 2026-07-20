@@ -517,7 +517,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       <div class="table-card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Criado em</th><th></th></tr></thead>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Cliente</th><th>Criado em</th><th></th></tr></thead>
             <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Carregando...</td></tr></tbody>
           </table>
         </div>
@@ -612,12 +612,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.07em">Atribuir para usuários</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="group-buttons">
-          <button type="button" class="btn-secondary btn-sm" onclick="selectGroup('todos')" style="height:28px;padding:0 10px;font-size:11px">Todos</button>
-          <button type="button" class="btn-secondary btn-sm" onclick="selectGroup('nenhum')" style="height:28px;padding:0 10px;font-size:11px">Nenhum</button>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="team-filter-select" onchange="selectGroup(this.value)" style="font-size:11px;padding:4px 8px;border:1.5px solid #d1d5db;border-radius:8px;background:#fff;color:#374151;height:28px;cursor:pointer" title="Selecionar por equipe">
+            <option value="">Selecionar por equipe...</option>
+          </select>
+          <button type="button" class="btn-secondary btn-sm" onclick="selectGroup('todos');document.getElementById('team-filter-select').value=''" style="height:28px;padding:0 10px;font-size:11px">Todos</button>
+          <button type="button" class="btn-secondary btn-sm" onclick="selectGroup('nenhum');document.getElementById('team-filter-select').value=''" style="height:28px;padding:0 10px;font-size:11px">Nenhum</button>
         </div>
       </div>
-      <div class="assign-grid" id="assign-users"></div>
+      <div id="assign-users"></div>
     </div>
     <div style="margin-top:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -655,9 +658,22 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <div class="form-group">
       <label class="form-label">Perfil</label>
       <select class="form-select" id="um-role">
-        <option value="user">Usuário</option>
+        <option value="user">Analista</option>
         <option value="admin">Administrador</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cliente</label>
+      <div style="display:flex;gap:8px">
+        <select class="form-select" id="um-client" onchange="onClientChange(this)" style="flex:1">
+          <option value="">Sem cliente</option>
+          <option value="AGIBAN">AGIBAN</option>
+          <option value="BRADESCO">BRADESCO</option>
+          <option value="EAGLE">EAGLE</option>
+          <option value="__outro__">Outro...</option>
+        </select>
+        <input class="form-input" id="um-client-custom" placeholder="Nome do cliente" style="display:none;flex:1">
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeUserModal()">Cancelar</button>
@@ -666,38 +682,69 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
   </div>
 </div>
 
-<!-- MODAL: IMPORTAR CSV -->
+<!-- MODAL: IMPORTAR -->
 <div class="modal-overlay" id="import-modal">
   <div class="modal" style="max-width:560px">
-    <div class="modal-title">Importar usuários via CSV</div>
+    <div class="modal-title">Importar usuários</div>
+    <!-- ABAS -->
+    <div style="display:flex;gap:0;border-bottom:2px solid #e8eaed;margin-bottom:16px">
+      <button id="tab-names" onclick="switchImportTab('names')" style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px">Por nome</button>
+      <button id="tab-csv" onclick="switchImportTab('csv')" style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af">Via CSV</button>
+    </div>
     <div id="import-alert" style="display:none" class="alert alert-error"></div>
-    <div style="margin-bottom:14px;font-size:12px;color:#4A545E;line-height:1.6">
-      Faça upload de um arquivo <strong>.csv</strong> com as colunas:<br>
-      <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">nome,usuario,senha</code>
-      <br>A senha é opcional — se omitida, será gerada automaticamente.
-    </div>
-    <div style="margin-bottom:12px">
-      <button class="btn-secondary btn-sm" onclick="downloadTemplate()" style="height:32px;padding:0 12px;font-size:11px">&#8615; Baixar modelo .csv</button>
-    </div>
-    <div class="import-dropzone" id="import-dropzone" onclick="document.getElementById('import-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
-      <div style="font-size:28px;margin-bottom:8px">&#128196;</div>
-      <div style="font-size:13px;font-weight:600;color:#1a2332;margin-bottom:4px">Clique ou arraste o arquivo aqui</div>
-      <div style="font-size:11px;color:#9ca3af">Formato: .csv, até 500 usuários</div>
-      <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
-    </div>
-    <div id="import-preview" style="display:none;margin-top:14px">
-      <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Preview <span id="import-count"></span></div>
-      <div style="max-height:200px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#f4f6f9"><th style="padding:8px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:8px 12px;text-align:left;font-weight:600">Usuário</th><th style="padding:8px 12px;text-align:left;font-weight:600">Senha</th></tr></thead>
-          <tbody id="import-preview-body"></tbody>
-        </table>
+
+    <!-- ABA: POR NOME -->
+    <div id="import-tab-names">
+      <div style="margin-bottom:10px;font-size:12px;color:#4A545E;line-height:1.6">
+        Cole os nomes completos dos analistas (um por linha).<br>
+        O usuario sera gerado automaticamente como <code style="background:#f4f6f9;padding:1px 5px;border-radius:4px">primeiro.ultimo</code> com senha padrão <strong>123456</strong>.
+      </div>
+      <textarea id="import-names-input" class="form-textarea" placeholder="Ana Silva&#10;João Souza&#10;Maria Ferreira..." style="min-height:140px;resize:vertical" oninput="previewNames()"></textarea>
+      <div id="import-names-preview" style="display:none;margin-top:10px">
+        <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Preview <span id="import-names-count"></span></div>
+        <div style="max-height:180px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:#f4f6f9"><th style="padding:7px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:7px 12px;text-align:left;font-weight:600">Usuario gerado</th></tr></thead>
+            <tbody id="import-names-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="import-result" style="display:none;margin-top:14px"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeImportModal()">Fechar</button>
+        <button class="btn-primary" id="import-names-btn" onclick="runImportByNames()" style="display:none">Criar analistas</button>
       </div>
     </div>
-    <div id="import-result" style="display:none;margin-top:14px"></div>
-    <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeImportModal()">Fechar</button>
-      <button class="btn-primary" id="import-save-btn" onclick="runImport()" style="display:none">Importar usuários</button>
+
+    <!-- ABA: CSV -->
+    <div id="import-tab-csv" style="display:none">
+      <div style="margin-bottom:14px;font-size:12px;color:#4A545E;line-height:1.6">
+        Faça upload de um arquivo <strong>.csv</strong> com as colunas:<br>
+        <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">nome,usuario,senha</code>
+        <br>A senha é opcional — se omitida, será gerada automaticamente.
+      </div>
+      <div style="margin-bottom:12px">
+        <button class="btn-secondary btn-sm" onclick="downloadTemplate()" style="height:32px;padding:0 12px;font-size:11px">&#8615; Baixar modelo .csv</button>
+      </div>
+      <div class="import-dropzone" id="import-dropzone" onclick="document.getElementById('import-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">&#128196;</div>
+        <div style="font-size:13px;font-weight:600;color:#1a2332;margin-bottom:4px">Clique ou arraste o arquivo aqui</div>
+        <div style="font-size:11px;color:#9ca3af">Formato: .csv, até 500 usuários</div>
+        <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
+      </div>
+      <div id="import-preview" style="display:none;margin-top:14px">
+        <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Preview <span id="import-count"></span></div>
+        <div style="max-height:200px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr style="background:#f4f6f9"><th style="padding:8px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:8px 12px;text-align:left;font-weight:600">Usuário</th><th style="padding:8px 12px;text-align:left;font-weight:600">Senha</th></tr></thead>
+            <tbody id="import-preview-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeImportModal()">Fechar</button>
+        <button class="btn-primary" id="import-save-btn" onclick="runImport()" style="display:none">Importar usuários</button>
+      </div>
     </div>
   </div>
 </div>
@@ -850,6 +897,7 @@ function renderFormsList() {
           <span class="meta-item">&#128100; ${f.assigned_count} atribuído${f.assigned_count!==1?'s':''}</span>
           <span class="meta-item">&#8801; ${f.response_count} resposta${f.response_count!==1?'s':''}</span>
           <span class="meta-item">&#128197; ${date}</span>
+          ${f.created_by ? `<span class="meta-item" title="Criado por">&#9998; ${esc((allUsers.find(u=>u.id===f.created_by)||{name:'Admin'}).name.split(' ')[0])}</span>` : ''}
         </div>
       </div>
       <div class="form-row-actions">
@@ -1002,6 +1050,7 @@ async function loadFormsPanel() {
           <span class="meta-item">&#128100; ${f.assigned_count} atribuído${f.assigned_count!==1?'s':''}</span>
           <span class="meta-item">&#8801; ${f.response_count} resposta${f.response_count!==1?'s':''}</span>
           <span class="meta-item">&#128197; ${date}</span>
+          ${f.created_by ? `<span class="meta-item" title="Criado por">&#9998; ${esc((allUsers.find(u=>u.id===f.created_by)||{name:'Admin'}).name.split(' ')[0])}</span>` : ''}
         </div>
       </div>
       <div class="form-row-actions">
@@ -1059,11 +1108,34 @@ async function loadAssignUsers(selectedIds=[]) {
   const users = (data.users||[]).filter(u => u.role !== 'admin');
   const el = document.getElementById('assign-users');
   if (!users.length) { el.innerHTML = '<span style="font-size:12px;color:#9ca3af">Nenhum usuário cadastrado.</span>'; return; }
-  el.innerHTML = users.map(u => `
-    <label class="assign-chip">
-      <input type="checkbox" data-uid="${u.id}" data-username="${esc(u.username||u.email||'')}" ${selectedIds.includes(u.id)||selectedIds.includes(String(u.id))?'checked':''}>
-      ${esc(u.name)}
-    </label>`).join('');
+
+  // Group by team
+  const groups = allTeams.map(t => ({
+    label: t.name, id: t.id,
+    members: users.filter(u => u.manager === t.id).sort((a,b)=>a.name.localeCompare(b.name))
+  })).filter(g => g.members.length);
+  const ungrouped = users.filter(u => !allTeams.find(t => t.id === u.manager)).sort((a,b)=>a.name.localeCompare(b.name));
+
+  const renderChip = u => `<label class="assign-chip">
+    <input type="checkbox" data-uid="${u.id}" data-username="${esc(u.username||u.email||'')}" ${selectedIds.includes(u.id)||selectedIds.includes(String(u.id))?'checked':''}>
+    ${esc(u.name)}
+  </label>`;
+
+  let html = '';
+  groups.forEach((g, i) => {
+    const color = TEAM_COLORS[i % TEAM_COLORS.length];
+    html += `<div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${color};margin-bottom:5px;padding:0 2px">${esc(g.label)}</div>
+      <div class="assign-grid">${g.members.map(renderChip).join('')}</div>
+    </div>`;
+  });
+  if (ungrouped.length) {
+    html += `<div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:5px;padding:0 2px">Sem equipe</div>
+      <div class="assign-grid">${ungrouped.map(renderChip).join('')}</div>
+    </div>`;
+  }
+  el.innerHTML = html;
 }
 
 function addField(existing=null) {
@@ -1170,17 +1242,24 @@ async function loadUsers() {
   const data = await api('/api/users');
   allUsers = data.users || [];
   const tbody = document.getElementById('users-body');
-  if (!allUsers.length) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Nenhum usuário cadastrado.</td></tr>`; return; }
+  if (!allUsers.length) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:32px">Nenhum usuário cadastrado.</td></tr>`; return; }
   tbody.innerHTML = allUsers.map(u => `<tr>
     <td><strong>${esc(u.name)}</strong></td>
     <td>${esc(u.username||u.email)}</td>
-    <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Usuário'}</span></td>
+    <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Analista'}</span></td>
+    <td>${u.client ? `<span style="font-size:11px;font-weight:600;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px">${esc(u.client)}</span>` : '<span style="color:#9ca3af;font-size:11px">—</span>'}</td>
     <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
     <td style="white-space:nowrap">
       <button class="btn-action" onclick='openUserModal(${JSON.stringify(u)})'>Editar</button>
       ${u.id!==me.id?`<button class="btn-action danger" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:6px">Excluir</button>`:''}
     </td>
   </tr>`).join('');
+}
+
+function onClientChange(sel) {
+  const custom = document.getElementById('um-client-custom');
+  custom.style.display = sel.value === '__outro__' ? '' : 'none';
+  if (sel.value !== '__outro__') custom.value = '';
 }
 
 function openUserModal(user=null) {
@@ -1195,6 +1274,16 @@ function openUserModal(user=null) {
   const req = document.getElementById('um-pwd-req');
   if (user) { hint.textContent = 'Deixe em branco para manter a senha atual.'; req.style.display='none'; }
   else { hint.textContent = ''; req.style.display='inline'; }
+  // client field
+  const knownClients = ['AGIBAN','BRADESCO','EAGLE'];
+  const clientSel = document.getElementById('um-client');
+  const clientCustom = document.getElementById('um-client-custom');
+  const c = user?.client || '';
+  if (!c || knownClients.includes(c)) {
+    clientSel.value = c; clientCustom.style.display='none'; clientCustom.value='';
+  } else {
+    clientSel.value = '__outro__'; clientCustom.style.display=''; clientCustom.value=c;
+  }
   document.getElementById('user-modal').classList.add('open');
 }
 
@@ -1219,7 +1308,9 @@ async function saveUser() {
   if (!editingUserId&&!password) { alertEl.textContent='Senha obrigatória'; alertEl.style.display='block'; return; }
   btn.textContent='Salvando...'; btn.disabled=true;
   try {
-    const body = { name, email, role, ...(password?{password}:{}) };
+    const clientSel = document.getElementById('um-client').value;
+    const clientVal = clientSel === '__outro__' ? document.getElementById('um-client-custom').value.trim() : clientSel;
+    const body = { name, email, role, client: clientVal || null, ...(password?{password}:{}) };
     const data = editingUserId
       ? await api(`/api/users/${editingUserId}`, { method:'PUT', body: JSON.stringify(body) })
       : await api('/api/users', { method:'POST', body: JSON.stringify(body) });
@@ -1337,15 +1428,10 @@ function selectGroup(group) {
 }
 
 function renderGroupButtons() {
-  const container = document.getElementById('group-buttons');
-  if (!container || !allTeams.length) return;
-  const teamBtns = allTeams.map((t, i) => {
-    const color = TEAM_COLORS[i % TEAM_COLORS.length];
-    return `<button type="button" class="btn-secondary btn-sm" onclick="selectGroup('${t.id}')" style="height:28px;padding:0 10px;font-size:11px;border-color:${color};color:${color}">${esc(t.name)}</button>`;
-  }).join('');
-  container.innerHTML = teamBtns +
-    `<button type="button" class="btn-secondary btn-sm" onclick="selectGroup('todos')" style="height:28px;padding:0 10px;font-size:11px">Todos</button>` +
-    `<button type="button" class="btn-secondary btn-sm" onclick="selectGroup('nenhum')" style="height:28px;padding:0 10px;font-size:11px">Nenhum</button>`;
+  const sel = document.getElementById('team-filter-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Selecionar por equipe...</option>' +
+    allTeams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
 }
 
 // ── TRIGGERS ──────────────────────────────────────────────────
@@ -1390,8 +1476,68 @@ function renderTriggers() {
   `).join('');
 }
 
-// ── IMPORT CSV ────────────────────────────────────────────────
+// ── IMPORT ────────────────────────────────────────────────────
 let importRows = [];
+
+function switchImportTab(tab) {
+  document.getElementById('import-tab-names').style.display = tab === 'names' ? '' : 'none';
+  document.getElementById('import-tab-csv').style.display = tab === 'csv' ? '' : 'none';
+  document.getElementById('tab-names').style.cssText = tab === 'names'
+    ? 'padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px'
+    : 'padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af';
+  document.getElementById('tab-csv').style.cssText = tab === 'csv'
+    ? 'padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px'
+    : 'padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af';
+}
+
+function nameToUsername(name) {
+  const parts = name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return parts[0] || '';
+  return parts[0] + '.' + parts[parts.length - 1];
+}
+
+function previewNames() {
+  const lines = document.getElementById('import-names-input').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const preview = document.getElementById('import-names-preview');
+  const body = document.getElementById('import-names-body');
+  const cnt = document.getElementById('import-names-count');
+  const btn = document.getElementById('import-names-btn');
+  if (!lines.length) { preview.style.display='none'; btn.style.display='none'; return; }
+  const rows = lines.map(name => ({ name, username: nameToUsername(name) })).filter(r => r.username);
+  cnt.textContent = `(${rows.length} analistas)`;
+  body.innerHTML = rows.map(r => `<tr style="border-top:1px solid #f4f6f9">
+    <td style="padding:7px 12px">${esc(r.name)}</td>
+    <td style="padding:7px 12px;color:#023631;font-weight:600">${esc(r.username)}</td>
+  </tr>`).join('');
+  preview.style.display = 'block';
+  btn.style.display = '';
+}
+
+async function runImportByNames() {
+  const lines = document.getElementById('import-names-input').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const rows = lines.map(name => ({ name, username: nameToUsername(name) })).filter(r => r.username);
+  const btn = document.getElementById('import-names-btn');
+  const result = document.getElementById('import-result');
+  btn.textContent = 'Criando...'; btn.disabled = true;
+  let ok = 0, fail = [];
+  for (const r of rows) {
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ name: r.name, username: r.username, password: '123456', role: 'user' })
+      });
+      const d = await res.json();
+      if (d.success) ok++; else fail.push(`${r.name}: ${d.error}`);
+    } catch { fail.push(r.name); }
+  }
+  result.style.display = 'block';
+  result.innerHTML = `<div class="alert ${fail.length && !ok ? 'alert-error' : 'alert-success'}" style="display:block">
+    ${ok} analista(s) criado(s) com sucesso.${fail.length ? `<br>Erros: ${fail.slice(0,5).map(esc).join(', ')}` : ''}
+  </div>`;
+  btn.textContent = 'Criar analistas'; btn.disabled = false;
+  if (ok) { loadUsers(); document.getElementById('import-names-input').value=''; previewNames(); }
+}
 
 function openImportModal() {
   importRows = [];
@@ -1400,6 +1546,10 @@ function openImportModal() {
   document.getElementById('import-save-btn').style.display = 'none';
   document.getElementById('import-alert').style.display = 'none';
   document.getElementById('import-file').value = '';
+  document.getElementById('import-names-input').value = '';
+  document.getElementById('import-names-preview').style.display = 'none';
+  document.getElementById('import-names-btn').style.display = 'none';
+  switchImportTab('names');
   document.getElementById('import-modal').classList.add('open');
 }
 function closeImportModal() { document.getElementById('import-modal').classList.remove('open'); }
@@ -1555,7 +1705,10 @@ async function loadTeams() {
             <div style="font-weight:700;font-size:13px">${esc(col.name)}</div>
             <div style="font-size:11px;opacity:.7;margin-top:2px">${list.length} analista${list.length !== 1 ? 's' : ''}</div>
           </div>
-          ${col.id !== null ? `<button onclick="deleteTeam('${col.id}')" title="Excluir equipe" style="background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;font-size:11px;padding:3px 8px;cursor:pointer">Excluir</button>` : ''}
+          ${col.id !== null ? `<div style="display:flex;gap:4px">
+            <button onclick="renameTeam('${col.id}','${esc(col.name).replace(/'/g,"\\'")}')" title="Renomear equipe" style="background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;font-size:11px;padding:3px 8px;cursor:pointer">Renomear</button>
+            <button onclick="deleteTeam('${col.id}')" title="Excluir equipe" style="background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;font-size:11px;padding:3px 8px;cursor:pointer">Excluir</button>
+          </div>` : ''}
         </div>
         <div style="padding:8px 0;min-height:60px">${rows}</div>
       </div>`;
@@ -1586,6 +1739,15 @@ function openNewTeamModal() {
 async function createTeam(name) {
   try {
     await api('/api/teams', { method: 'POST', body: JSON.stringify({ name }) });
+    await loadTeams();
+  } catch (e) { alert(e.message); }
+}
+
+async function renameTeam(id, currentName) {
+  const name = prompt('Novo nome da equipe:', currentName);
+  if (!name || !name.trim() || name.trim() === currentName) return;
+  try {
+    await api(`/api/teams/${id}`, { method: 'PATCH', body: JSON.stringify({ name: name.trim() }) });
     await loadTeams();
   } catch (e) { alert(e.message); }
 }
