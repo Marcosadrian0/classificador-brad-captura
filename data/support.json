@@ -26,5 +26,15 @@
     "target_user_id": "a802ba16-d841-46be-89e7-c72e0cd34115",
     "concluded": true,
     "sent_at": "2026-07-10T22:45:42.396Z"
+  },
+  {
+    "id": "0bb049cb-1197-4012-80f1-727ac1deddf5",
+    "user_id": "d75ea7a6-a512-4e1d-85a6-55e28f463dce",
+    "user_name": "Joao Zocarato",
+    "user_email": "joao.zocarato",
+    "message": "ola",
+    "sent_at": "2026-07-20T18:48:32.739Z",
+    "from": "user",
+    "read": false
   }
 ]
