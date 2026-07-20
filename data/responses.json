@@ -421,5 +421,14 @@
     "values": {
       "e7b08de7-c18d-484e-b5c0-71f853f05413": "DESKTOP"
     }
+  },
+  {
+    "id": "d1eee0ae-aaae-4a71-aadc-7019100c37af",
+    "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
+    "user_id": "553ef9d5-4b46-44d0-96e9-b0225315b443",
+    "submitted_at": "2026-07-20T15:19:45.880Z",
+    "values": {
+      "e7b08de7-c18d-484e-b5c0-71f853f05413": "DESKTOP"
+    }
   }
 ]
