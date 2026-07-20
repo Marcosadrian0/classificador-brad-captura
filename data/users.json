@@ -396,5 +396,14 @@
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
     "manager": "alice"
+  },
+  {
+    "id": "d75ea7a6-a512-4e1d-85a6-55e28f463dce",
+    "name": "Joao Zocarato",
+    "username": "joao.zocarato",
+    "email": "joao.zocarato",
+    "password_hash": "$2a$10$v2aOLfLfUsX3I.CopW14W.rLPZ/Ha6PZEjYPD3DsxEQGMp5pcwDHu",
+    "role": "admin",
+    "created_at": "2026-07-20T18:47:32.591Z"
   }
 ]
