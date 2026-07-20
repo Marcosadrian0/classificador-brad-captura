@@ -448,5 +448,14 @@
     "values": {
       "e7b08de7-c18d-484e-b5c0-71f853f05413": "DESKTOP"
     }
+  },
+  {
+    "id": "d6c17910-cab4-4d5f-a022-89f827c4baad",
+    "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
+    "user_id": "2f8b0b48-288f-4ce3-8b6b-af71f15241ec",
+    "submitted_at": "2026-07-20T15:24:25.579Z",
+    "values": {
+      "e7b08de7-c18d-484e-b5c0-71f853f05413": "NOTEBOOK"
+    }
   }
 ]
