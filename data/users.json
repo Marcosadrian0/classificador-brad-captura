@@ -396,15 +396,5 @@
     "role": "user",
     "created_at": "2026-07-17T12:00:00.000Z",
     "manager": "alice"
-  },
-  {
-    "id": "65e16643-ec23-4bef-9449-0ded37fc1c56",
-    "name": "TESTE",
-    "username": "teste.teste",
-    "email": "teste.teste",
-    "password_hash": "$2a$10$Tfu5ZnR21Dcyo8GTWRQDh.BQEj/MaYn1rZHyjjMuq8GClW5F2yWyO",
-    "role": "user",
-    "created_at": "2026-07-20T18:45:53.486Z",
-    "manager": "52fffbf2-0dc4-43d7-986d-02bfd88774ab"
   }
 ]
