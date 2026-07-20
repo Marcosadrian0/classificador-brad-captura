@@ -718,8 +718,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
         <select class="form-select" id="um-client" onchange="onClientChange(this)" style="flex:1">
           <option value="">Sem cliente</option>
           <option value="Agibank">Agibank</option>
-          <option value="BRADESCO">BRADESCO</option>
-          <option value="EAGLE">EAGLE</option>
           <option value="__outro__">Outro...</option>
         </select>
         <input class="form-input" id="um-client-custom" placeholder="Nome do cliente" style="display:none;flex:1">
@@ -739,7 +737,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
     <!-- ABAS -->
     <div style="display:flex;gap:0;border-bottom:2px solid #e8eaed;margin-bottom:16px">
       <button id="tab-names" onclick="switchImportTab('names')" style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px">Por nome</button>
-      <button id="tab-csv" onclick="switchImportTab('csv')" style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af">Via CSV</button>
+      <button id="tab-csv" onclick="switchImportTab('csv')" style="padding:8px 18px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af">Via Excel</button>
     </div>
     <div id="import-alert" style="display:none" class="alert alert-error"></div>
 
@@ -749,10 +747,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
         Cole os nomes completos dos analistas (um por linha).<br>
         O usuario sera gerado automaticamente como <code style="background:#f4f6f9;padding:1px 5px;border-radius:4px">primeiro.ultimo</code> com senha padrão <strong>123456</strong>.
       </div>
-      <textarea id="import-names-input" class="form-textarea" placeholder="Ana Silva&#10;João Souza&#10;Maria Ferreira..." style="min-height:140px;resize:vertical" oninput="previewNames()"></textarea>
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;color:#023631;display:block;margin-bottom:4px">Cliente</label>
+        <select id="import-names-client" class="form-select" style="width:200px">
+          <option value="Agibank">Agibank</option>
+          <option value="">Sem cliente</option>
+        </select>
+      </div>
+      <textarea id="import-names-input" class="form-textarea" placeholder="Ana Silva&#10;João Souza&#10;Maria Ferreira..." style="min-height:130px;resize:vertical" oninput="previewNames()"></textarea>
       <div id="import-names-preview" style="display:none;margin-top:10px">
         <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Preview <span id="import-names-count"></span></div>
-        <div style="max-height:180px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
+        <div style="max-height:160px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead><tr style="background:#f4f6f9"><th style="padding:7px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:7px 12px;text-align:left;font-weight:600">Usuario gerado</th></tr></thead>
             <tbody id="import-names-body"></tbody>
@@ -766,27 +771,33 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
       </div>
     </div>
 
-    <!-- ABA: CSV -->
+    <!-- ABA: VIA EXCEL -->
     <div id="import-tab-csv" style="display:none">
       <div style="margin-bottom:14px;font-size:12px;color:#4A545E;line-height:1.6">
-        Faça upload de um arquivo <strong>.csv</strong> com as colunas:<br>
-        <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">nome,usuario,senha</code>
-        <br>A senha é opcional — se omitida, será gerada automaticamente.
+        Faça upload de um arquivo <strong>.xlsx</strong> ou <strong>.csv</strong> com a coluna <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">nome</code>.<br>
+        Usuario e senha (123456) gerados automaticamente. Coluna <code style="background:#f4f6f9;padding:2px 6px;border-radius:4px;font-size:11px">cliente</code> é opcional.
       </div>
-      <div style="margin-bottom:12px">
-        <button class="btn-secondary btn-sm" onclick="downloadTemplate()" style="height:32px;padding:0 12px;font-size:11px">&#8615; Baixar modelo .csv</button>
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;font-weight:600;color:#023631;display:block;margin-bottom:4px">Cliente padrão (aplicado a quem não tiver na planilha)</label>
+        <select id="import-excel-client" class="form-select" style="width:200px">
+          <option value="Agibank">Agibank</option>
+          <option value="">Sem cliente</option>
+        </select>
+      </div>
+      <div style="margin-bottom:10px">
+        <button class="btn-secondary btn-sm" onclick="downloadExcelTemplate()" style="height:32px;padding:0 12px;font-size:11px">&#8615; Baixar modelo</button>
       </div>
       <div class="import-dropzone" id="import-dropzone" onclick="document.getElementById('import-file').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
         <div style="font-size:28px;margin-bottom:8px">&#128196;</div>
         <div style="font-size:13px;font-weight:600;color:#1a2332;margin-bottom:4px">Clique ou arraste o arquivo aqui</div>
-        <div style="font-size:11px;color:#9ca3af">Formato: .csv, até 500 usuários</div>
-        <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
+        <div style="font-size:11px;color:#9ca3af">Formato: .xlsx ou .csv, até 500 usuários</div>
+        <input type="file" id="import-file" accept=".csv,.xlsx" style="display:none" onchange="handleFileSelect(event)">
       </div>
       <div id="import-preview" style="display:none;margin-top:14px">
         <div style="font-size:11px;font-weight:700;color:#023631;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Preview <span id="import-count"></span></div>
-        <div style="max-height:200px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
+        <div style="max-height:180px;overflow-y:auto;border:1px solid #e8eaed;border-radius:10px">
           <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead><tr style="background:#f4f6f9"><th style="padding:8px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:8px 12px;text-align:left;font-weight:600">Usuário</th><th style="padding:8px 12px;text-align:left;font-weight:600">Senha</th></tr></thead>
+            <thead><tr style="background:#f4f6f9"><th style="padding:8px 12px;text-align:left;font-weight:600">Nome</th><th style="padding:8px 12px;text-align:left;font-weight:600">Usuario</th><th style="padding:8px 12px;text-align:left;font-weight:600">Cliente</th></tr></thead>
             <tbody id="import-preview-body"></tbody>
           </table>
         </div>
@@ -1488,7 +1499,7 @@ function openUserModal(user=null) {
   if (user) { hint.textContent = 'Deixe em branco para manter a senha atual.'; req.style.display='none'; }
   else { hint.textContent = ''; req.style.display='inline'; }
   // client field
-  const knownClients = ['Agibank','BRADESCO','EAGLE'];
+  const knownClients = ['Agibank'];
   const clientSel = document.getElementById('um-client');
   const clientCustom = document.getElementById('um-client-custom');
   const c = user?.client || '';
@@ -1728,7 +1739,8 @@ function previewNames() {
 
 async function runImportByNames() {
   const lines = document.getElementById('import-names-input').value.split('\n').map(l=>l.trim()).filter(Boolean);
-  const rows = lines.map(name => ({ name, username: nameToUsername(name) })).filter(r => r.username);
+  const client = document.getElementById('import-names-client').value;
+  const rows = lines.map(name => ({ name, username: nameToUsername(name), client })).filter(r => r.username);
   const btn = document.getElementById('import-names-btn');
   const result = document.getElementById('import-result');
   btn.textContent = 'Criando...'; btn.disabled = true;
@@ -1738,7 +1750,7 @@ async function runImportByNames() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ name: r.name, username: r.username, password: '123456', role: 'user' })
+        body: JSON.stringify({ name: r.name, username: r.username, password: '123456', role: 'user', client: r.client || null })
       });
       const d = await res.json();
       if (d.success) ok++; else fail.push(`${r.name}: ${d.error}`);
@@ -1768,12 +1780,14 @@ function openImportModal() {
 function closeImportModal() { document.getElementById('import-modal').classList.remove('open'); }
 
 function downloadTemplate() {
-  const csv = 'nome,usuario,senha\nJoão Silva,joao.silva,senha123\nMaria Souza,maria.souza,';
+  const csv = 'nome,cliente\nJoão Silva,Agibank\nMaria Souza,Agibank';
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
   a.download = 'modelo_importacao.csv';
   a.click();
 }
+
+function downloadExcelTemplate() { downloadTemplate(); }
 
 function handleDrop(e) {
   e.preventDefault();
@@ -1790,16 +1804,18 @@ function parseCSVFile(file) {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if (!lines.length) return;
     const header = lines[0].toLowerCase().split(',').map(h => h.trim());
-    const iNome = header.indexOf('nome'), iUser = header.indexOf('usuario') !== -1 ? header.indexOf('usuario') : header.indexOf('usuário');
-    const iSenha = header.indexOf('senha');
-    if (iNome === -1 || iUser === -1) {
+    const iNome = header.indexOf('nome');
+    const iCliente = header.indexOf('cliente');
+    if (iNome === -1) {
       const al = document.getElementById('import-alert');
-      al.textContent = 'Colunas "nome" e "usuario" são obrigatórias no CSV.';
+      al.textContent = 'Coluna "nome" é obrigatória.';
       al.style.display = 'block'; return;
     }
+    const defaultClient = document.getElementById('import-excel-client')?.value || 'Agibank';
     importRows = lines.slice(1).map(l => {
       const cols = l.split(',').map(c => c.trim().replace(/^"|"$/g,''));
-      return { name: cols[iNome]||'', username: cols[iUser]||'', password: iSenha !== -1 ? cols[iSenha]||'' : '' };
+      const name = cols[iNome] || '';
+      return { name, username: nameToUsername(name), client: iCliente !== -1 ? (cols[iCliente] || defaultClient) : defaultClient };
     }).filter(r => r.name && r.username);
     renderImportPreview();
   };
@@ -1814,7 +1830,7 @@ function renderImportPreview() {
   body.innerHTML = importRows.map(r => `<tr style="border-top:1px solid #f4f6f9">
     <td style="padding:7px 12px">${esc(r.name)}</td>
     <td style="padding:7px 12px">${esc(r.username)}</td>
-    <td style="padding:7px 12px;color:#9ca3af">${r.password ? '••••••' : 'Auto'}</td>
+    <td style="padding:7px 12px">${r.client ? `<span style="font-size:11px;font-weight:600;background:#e0f2fe;color:#0369a1;padding:1px 7px;border-radius:5px">${esc(r.client)}</span>` : '<span style="color:#9ca3af">—</span>'}</td>
   </tr>`).join('');
   preview.style.display = 'block';
   document.getElementById('import-save-btn').style.display = '';
@@ -1831,7 +1847,7 @@ async function runImport() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ name: r.name, username: r.username, password: r.password || Math.random().toString(36).slice(-8), role: 'user' })
+        body: JSON.stringify({ name: r.name, username: r.username, password: '123456', role: 'user', client: r.client || null })
       });
       const d = await res.json();
       if (d.success) ok++; else fail.push(`${r.name}: ${d.error}`);
