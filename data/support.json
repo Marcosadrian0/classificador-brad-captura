@@ -36,5 +36,16 @@
     "sent_at": "2026-07-20T18:48:32.739Z",
     "from": "user",
     "read": false
+  },
+  {
+    "id": "120d17be-ef5b-44c2-85a4-aecd43e90231",
+    "user_id": "aa9a4c63-3bb9-48fd-a1d8-3ff45fa463a3",
+    "user_name": "Marcos Oliveira",
+    "target_user_id": "d75ea7a6-a512-4e1d-85a6-55e28f463dce",
+    "target_user_name": "Joao Zocarato",
+    "message": "Ola, como posso ajudar?",
+    "sent_at": "2026-07-20T18:48:51.482Z",
+    "from": "admin",
+    "read": false
   }
 ]
