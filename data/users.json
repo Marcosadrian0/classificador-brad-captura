@@ -496,6 +496,7 @@
     "password_hash": "$2a$10$RWjU86fG9DOmTr4HglR.1OWJhlmFhFhsQ5YHgFvidpFT5KzDYvpki",
     "role": "admin",
     "is_active": true,
-    "created_at": "2026-07-20T20:11:38.895Z"
+    "created_at": "2026-07-20T20:11:38.895Z",
+    "client": "Bradesco"
   }
 ]
