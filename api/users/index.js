@@ -31,6 +31,7 @@ module.exports = async (req, res) => {
         email: username,
         password_hash: await bcrypt.hash(password, 10),
         role,
+        is_active: true,
         created_at: new Date().toISOString()
       };
 

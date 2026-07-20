@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
       const idx = file.list.findIndex(u => u.id === id);
       if (idx === -1) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
 
-      const user = { ...file.list[idx], name: name.trim(), username, email: username, role, client: client || null };
+      const user = { ...file.list[idx], name: name.trim(), username, email: username, role, client: client || null, is_active: file.list[idx].is_active !== false };
       if (password) user.password_hash = await bcrypt.hash(password, 10);
 
       file.list[idx] = user;
@@ -25,11 +25,13 @@ module.exports = async (req, res) => {
 
     if (req.method === 'PATCH') {
       requireAdmin(req);
-      const { manager } = req.body || {};
+      const { manager, is_active } = req.body || {};
       const file = await read('users');
       const idx = file.list.findIndex(u => u.id === id);
       if (idx === -1) return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
-      file.list[idx] = { ...file.list[idx], manager: manager || null };
+      const patch = { manager: manager !== undefined ? (manager || null) : file.list[idx].manager };
+      if (is_active !== undefined) patch.is_active = Boolean(is_active);
+      file.list[idx] = { ...file.list[idx], ...patch };
       await write('users', file.list, file.sha, `manager: ${file.list[idx].email} -> ${manager || 'none'}`);
       const { password_hash, ...safe } = file.list[idx];
       return res.json({ success: true, user: safe });

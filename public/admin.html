@@ -514,17 +514,62 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color:
           <button class="btn-new" onclick="openUserModal()">+ Novo usuário</button>
         </div>
       </div>
-      <!-- Abas Admin / Analistas -->
-      <div style="display:flex;gap:0;border-bottom:2px solid #e8eaed;margin-bottom:16px">
-        <button id="utab-analistas" onclick="switchUserTab('analistas')" style="padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px">Analistas</button>
-        <button id="utab-admins" onclick="switchUserTab('admins')" style="padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af">Administradores</button>
+
+      <!-- Stats cards -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="user-stats"></div>
+
+      <!-- Filtros -->
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <input id="user-search" type="text" placeholder="Buscar por nome, usuário ou e-mail..." oninput="filterUsers()" style="flex:1;min-width:200px;height:36px;padding:0 12px;border:1.5px solid #e8eaed;border-radius:9px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='#023631'" onblur="this.style.borderColor='#e8eaed'">
+        <select id="uf-perfil" onchange="filterUsers()" style="height:36px;padding:0 10px;border:1.5px solid #e8eaed;border-radius:9px;font-size:12px;font-family:inherit;background:#fff;color:#374151;cursor:pointer">
+          <option value="">Perfil: Todos</option>
+          <option value="admin">Admin</option>
+          <option value="user">Analista</option>
+        </select>
+        <select id="uf-status" onchange="filterUsers()" style="height:36px;padding:0 10px;border:1.5px solid #e8eaed;border-radius:9px;font-size:12px;font-family:inherit;background:#fff;color:#374151;cursor:pointer">
+          <option value="">Status: Todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+        <select id="uf-cliente" onchange="filterUsers()" style="height:36px;padding:0 10px;border:1.5px solid #e8eaed;border-radius:9px;font-size:12px;font-family:inherit;background:#fff;color:#374151;cursor:pointer">
+          <option value="">Cliente: Todos</option>
+        </select>
+        <button onclick="clearUserFilters()" style="height:36px;padding:0 14px;border:1.5px solid #e8eaed;border-radius:9px;font-size:12px;font-weight:600;background:#fff;color:#4A545E;cursor:pointer">Limpar filtros</button>
       </div>
+
+      <!-- Abas -->
+      <div style="display:flex;gap:0;border-bottom:2px solid #e8eaed;margin-bottom:14px" id="user-tabs"></div>
+
+      <!-- Tabela -->
       <div class="table-card">
         <div class="table-wrap">
-          <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Cliente</th><th>Criado em</th><th></th></tr></thead>
-            <tbody id="users-body"><tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Carregando...</td></tr></tbody>
+          <table id="users-table">
+            <thead><tr>
+              <th style="width:36px"></th>
+              <th>Nome</th>
+              <th>Usuário (login)</th>
+              <th>E-mail</th>
+              <th>Perfil</th>
+              <th>Status</th>
+              <th>Cliente</th>
+              <th>Criado em</th>
+              <th style="width:40px"></th>
+            </tr></thead>
+            <tbody id="users-body"><tr><td colspan="9" style="text-align:center;color:#9ca3af;padding:32px">Carregando...</td></tr></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Paginação -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:12px;color:#6b7280" id="users-page-info"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div id="users-pagination" style="display:flex;gap:4px"></div>
+          <select id="users-per-page" onchange="usersPerPage=+this.value;usersPage=1;renderUsersTable()" style="height:32px;padding:0 8px;border:1.5px solid #e8eaed;border-radius:8px;font-size:12px;background:#fff;cursor:pointer">
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+          </select>
         </div>
       </div>
     </div>
@@ -1243,44 +1288,185 @@ async function deleteForm(id, title) {
 
 // ── USERS ────────────────────────────────────────────────────
 let editingUserId = null;
-let activeUserTab = 'analistas';
+let activeUserTab = 'todos';
+let usersPage = 1;
+let usersPerPage = 10;
+let usersFiltered = [];
+
+const USER_AV_COLORS = ['#023631','#075056','#7c3aed','#b45309','#0369a1','#be185d','#15803d','#9f1239','#475569'];
+function userAvColor(name) {
+  let h = 0; for (let c of name) h = (h * 31 + c.charCodeAt(0)) % USER_AV_COLORS.length;
+  return USER_AV_COLORS[h];
+}
 
 function switchUserTab(tab) {
   activeUserTab = tab;
-  ['analistas','admins'].forEach(t => {
-    const btn = document.getElementById(`utab-${t}`);
-    if (!btn) return;
-    btn.style.cssText = t === tab
-      ? 'padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px'
-      : 'padding:9px 20px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#9ca3af';
+  usersPage = 1;
+  filterUsers();
+}
+
+function clearUserFilters() {
+  document.getElementById('user-search').value = '';
+  document.getElementById('uf-perfil').value = '';
+  document.getElementById('uf-status').value = '';
+  document.getElementById('uf-cliente').value = '';
+  filterUsers();
+}
+
+function filterUsers() {
+  const q = (document.getElementById('user-search')?.value || '').toLowerCase();
+  const perfil = document.getElementById('uf-perfil')?.value || '';
+  const status = document.getElementById('uf-status')?.value || '';
+  const cliente = document.getElementById('uf-cliente')?.value || '';
+
+  usersFiltered = allUsers.filter(u => {
+    if (activeUserTab === 'admins' && u.role !== 'admin') return false;
+    if (activeUserTab === 'analistas' && u.role === 'admin') return false;
+    if (activeUserTab === 'inativos' && u.is_active !== false) return false;
+    if (perfil === 'admin' && u.role !== 'admin') return false;
+    if (perfil === 'user' && u.role !== 'user') return false;
+    if (status === 'ativo' && u.is_active === false) return false;
+    if (status === 'inativo' && u.is_active !== false) return false;
+    if (cliente && u.client !== cliente) return false;
+    if (q && !`${u.name} ${u.username} ${u.email}`.toLowerCase().includes(q)) return false;
+    return true;
   });
+  usersPage = 1;
   renderUsersTable();
 }
 
+function renderUserStats() {
+  const total = allUsers.length;
+  const admins = allUsers.filter(u => u.role === 'admin').length;
+  const analistas = allUsers.filter(u => u.role !== 'admin').length;
+  const inativos = allUsers.filter(u => u.is_active === false).length;
+  const cards = [
+    { label: 'Total de usuários', val: total, sub: 'Todos os usuários cadastrados', color: '#023631', icon: '&#128101;' },
+    { label: 'Administradores', val: admins, sub: 'Usuários com perfil admin', color: '#b45309', icon: '&#128737;' },
+    { label: 'Analistas', val: analistas, sub: 'Usuários com perfil analista', color: '#0369a1', icon: '&#128100;' },
+    { label: 'Inativos', val: inativos, sub: 'Usuários sem acesso ativo', color: '#dc2626', icon: '&#9940;' }
+  ];
+  const el = document.getElementById('user-stats');
+  if (!el) return;
+  el.innerHTML = cards.map(c => `
+    <div style="background:#fff;border:1px solid #e8eaed;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:${c.color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${c.icon}</div>
+      <div>
+        <div style="font-size:22px;font-weight:700;color:#1a2332;line-height:1">${c.val}</div>
+        <div style="font-size:11px;font-weight:600;color:#1a2332;margin-top:2px">${c.label}</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:1px">${c.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderUserTabs() {
+  const total = allUsers.length;
+  const admins = allUsers.filter(u => u.role === 'admin').length;
+  const analistas = allUsers.filter(u => u.role !== 'admin').length;
+  const inativos = allUsers.filter(u => u.is_active === false).length;
+  const tabs = [
+    { id: 'todos', label: `Todos (${total})` },
+    { id: 'admins', label: `Administradores (${admins})` },
+    { id: 'analistas', label: `Analistas (${analistas})` },
+    { id: 'inativos', label: `Inativos (${inativos})` }
+  ];
+  const el = document.getElementById('user-tabs');
+  if (!el) return;
+  el.innerHTML = tabs.map(t => `<button onclick="switchUserTab('${t.id}')" style="padding:9px 16px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;white-space:nowrap;${activeUserTab===t.id?'border-bottom:2px solid #023631;color:#023631;margin-bottom:-2px':'color:#9ca3af'}">${t.label}</button>`).join('');
+}
+
+function renderClientFilter() {
+  const sel = document.getElementById('uf-cliente');
+  if (!sel) return;
+  const clients = [...new Set(allUsers.map(u => u.client).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Cliente: Todos</option>' + clients.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+
 function renderUsersTable() {
+  renderUserStats();
+  renderUserTabs();
   const tbody = document.getElementById('users-body');
   if (!tbody) return;
-  const filtered = allUsers.filter(u => activeUserTab === 'admins' ? u.role === 'admin' : u.role !== 'admin');
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:32px">Nenhum ${activeUserTab === 'admins' ? 'administrador' : 'analista'} cadastrado.</td></tr>`;
+  const total = usersFiltered.length;
+  const totalPages = Math.max(1, Math.ceil(total / usersPerPage));
+  if (usersPage > totalPages) usersPage = totalPages;
+  const start = (usersPage - 1) * usersPerPage;
+  const page = usersFiltered.slice(start, start + usersPerPage);
+
+  // Page info
+  const info = document.getElementById('users-page-info');
+  if (info) info.textContent = total ? `Mostrando ${start+1} a ${Math.min(start+usersPerPage,total)} de ${total} usuários` : 'Nenhum usuário encontrado';
+
+  // Pagination buttons
+  const pgEl = document.getElementById('users-pagination');
+  if (pgEl) {
+    let btns = '';
+    const pStyle = (active) => `min-width:30px;height:30px;padding:0 6px;border:1.5px solid ${active?'#023631':'#e8eaed'};border-radius:7px;background:${active?'#023631':'#fff'};color:${active?'#fff':'#374151'};font-size:12px;font-weight:600;cursor:pointer`;
+    btns += `<button onclick="usersPage=Math.max(1,usersPage-1);renderUsersTable()" style="${pStyle(false)}" ${usersPage===1?'disabled':''}>&#8249;</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages > 7 && Math.abs(p - usersPage) > 2 && p !== 1 && p !== totalPages) { if (p === 2 || p === totalPages-1) btns += `<span style="padding:0 2px;font-size:12px;color:#9ca3af">…</span>`; continue; }
+      btns += `<button onclick="usersPage=${p};renderUsersTable()" style="${pStyle(p===usersPage)}">${p}</button>`;
+    }
+    btns += `<button onclick="usersPage=Math.min(${totalPages},usersPage+1);renderUsersTable()" style="${pStyle(false)}" ${usersPage===totalPages?'disabled':''}>&#8250;</button>`;
+    pgEl.innerHTML = btns;
+  }
+
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#9ca3af;padding:32px">Nenhum usuário encontrado.</td></tr>`;
     return;
   }
-  tbody.innerHTML = filtered.map(u => `<tr>
-    <td><strong>${esc(u.name)}</strong></td>
-    <td>${esc(u.username||u.email)}</td>
-    <td>${u.client ? `<span style="font-size:11px;font-weight:600;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px">${esc(u.client)}</span>` : '<span style="color:#9ca3af;font-size:11px">—</span>'}</td>
-    <td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
-    <td style="white-space:nowrap">
-      <button class="btn-action" onclick='openUserModal(${JSON.stringify(u)})'>Editar</button>
-      ${u.id!==me.id?`<button class="btn-action danger" onclick="deleteUser('${u.id}','${esc(u.name)}')" style="margin-left:6px">Excluir</button>`:''}
-    </td>
-  </tr>`).join('');
+
+  tbody.innerHTML = page.map(u => {
+    const initials = (u.name||'U').split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+    const color = userAvColor(u.name||'');
+    const isActive = u.is_active !== false;
+    return `<tr>
+      <td><div style="width:32px;height:32px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${initials}</div></td>
+      <td><strong style="font-size:13px">${esc(u.name)}</strong></td>
+      <td style="color:#6b7280;font-size:12px">${esc(u.username||u.email)}</td>
+      <td style="color:#6b7280;font-size:12px">${esc(u.email||u.username)}</td>
+      <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-gray'}">${u.role==='admin'?'Admin':'Analista'}</span></td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:${isActive?'#16a34a':'#dc2626'}"><span style="width:7px;height:7px;border-radius:50%;background:${isActive?'#16a34a':'#dc2626'}"></span>${isActive?'Ativo':'Inativo'}</span></td>
+      <td>${u.client?`<span style="font-size:11px;font-weight:600;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px">${esc(u.client)}</span>`:'<span style="color:#9ca3af;font-size:11px">—</span>'}</td>
+      <td style="color:#6b7280;font-size:12px">${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
+      <td style="position:relative">
+        <div class="dropdown">
+          <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
+          <div class="dropdown-menu" style="right:0;left:auto;min-width:170px">
+            <div class="dropdown-item" onclick='openUserModal(${JSON.stringify(u)})'>&#9998; Editar usuário</div>
+            <div class="dropdown-item" onclick="toggleUserActive('${u.id}',${isActive},'${esc(u.name)}')">${isActive?'&#128683; Bloquear acesso':'&#9989; Ativar acesso'}</div>
+            <div class="dropdown-item" onclick="resetUserPassword('${u.id}','${esc(u.name)}')" >&#128274; Resetar senha</div>
+            ${u.id!==me.id?`<div class="dropdown-item danger" onclick="deleteUser('${u.id}','${esc(u.name)}')">&#128465; Excluir usuário</div>`:''}
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleUserActive(id, currentlyActive, name) {
+  if (!confirm(`${currentlyActive?'Bloquear':'Ativar'} o acesso de "${name}"?`)) return;
+  await api(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify({ is_active: !currentlyActive }) });
+  await loadUsers();
+}
+
+async function resetUserPassword(id, name) {
+  const pwd = prompt(`Nova senha para "${name}" (mínimo 6 caracteres):`);
+  if (!pwd || pwd.length < 6) { if (pwd !== null) alert('Senha muito curta.'); return; }
+  const u = allUsers.find(x => x.id === id);
+  if (!u) return;
+  const data = await api(`/api/users/${id}`, { method: 'PUT', body: JSON.stringify({
+    name: u.name, email: u.username || u.email, password: pwd, role: u.role
+  })});
+  if (data.success) alert('Senha alterada com sucesso.');
+  else alert(data.error);
 }
 
 async function loadUsers() {
   const data = await api('/api/users');
   allUsers = data.users || [];
-  renderUsersTable();
+  renderClientFilter();
+  filterUsers();
 }
 
 function onClientChange(sel) {
