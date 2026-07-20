@@ -414,15 +414,6 @@
     }
   },
   {
-    "id": "4eb39165-1f53-454d-9814-68256cc357b9",
-    "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
-    "user_id": "b39dac0e-cf09-43d0-bd41-a4df5979006a",
-    "submitted_at": "2026-07-20T15:15:23.503Z",
-    "values": {
-      "e7b08de7-c18d-484e-b5c0-71f853f05413": "DESKTOP"
-    }
-  },
-  {
     "id": "d1eee0ae-aaae-4a71-aadc-7019100c37af",
     "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
     "user_id": "553ef9d5-4b46-44d0-96e9-b0225315b443",
@@ -474,6 +465,15 @@
     "submitted_at": "2026-07-20T16:06:36.398Z",
     "values": {
       "e7b08de7-c18d-484e-b5c0-71f853f05413": "NOTEBOOK"
+    }
+  },
+  {
+    "id": "f381b3c8-9904-4a20-88c1-358f60a93b04",
+    "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
+    "user_id": "b39dac0e-cf09-43d0-bd41-a4df5979006a",
+    "submitted_at": "2026-07-20T16:11:31.793Z",
+    "values": {
+      "e7b08de7-c18d-484e-b5c0-71f853f05413": "DESKTOP"
     }
   }
 ]
