@@ -376,5 +376,14 @@
       "29bb8499-9981-4e34-a8ca-81baa52b8db1": "SIM||NÃO||Erro ao acessar ",
       "d5212882-f8f5-4222-aab2-97e2a03cde4d": "SIM||SIM"
     }
+  },
+  {
+    "id": "09e0e4e7-4995-4e07-85d3-ce2b43b83dd5",
+    "form_id": "0c7da31e-f533-42fb-b1a9-3b612326eafa",
+    "user_id": "aa9a4c63-3bb9-48fd-a1d8-3ff45fa463a3",
+    "submitted_at": "2026-07-20T15:05:33.114Z",
+    "values": {
+      "e7b08de7-c18d-484e-b5c0-71f853f05413": "NOTEBOOK"
+    }
   }
 ]
