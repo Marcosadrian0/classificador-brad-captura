@@ -164,6 +164,12 @@ async function load() {
   const list = document.getElementById('list');
 
   if (!data.success) {
+    if (data.error && (data.error.includes('jwt') || data.error.includes('token') || data.error.includes('expired') || data.error.includes('unauthorized'))) {
+      localStorage.removeItem('sbk_token');
+      localStorage.removeItem('sbk_user');
+      window.location.href = '/';
+      return;
+    }
     list.innerHTML = `<div class="alert alert-error">${data.error}</div>`;
     return;
   }
