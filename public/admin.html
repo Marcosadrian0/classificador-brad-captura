@@ -926,6 +926,7 @@ function renderFormsList() {
       <div class="form-row-actions">
         <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
         <button class="btn-action" onclick="copyFormLink('${f.id}',this)" title="Copiar link do formulário">&#128279; Copiar Link</button>
+        <button class="btn-action" onclick="copyPublicLink('${f.id}',this)" title="Link público sem login">&#127757; Link Público</button>
         <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
         <div class="dropdown" style="position:relative">
           <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
@@ -966,6 +967,17 @@ function copyFormLink(id, btn) {
     btn.style.color = '#023631';
     setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
   }).catch(() => prompt('Copie o link:', url));
+}
+
+function copyPublicLink(id, btn) {
+  const url = `${location.origin}/pform?id=${id}`;
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '&#10003; Copiado!';
+    btn.style.background = '#4ade80';
+    btn.style.color = '#023631';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.style.color = ''; }, 2000);
+  }).catch(() => prompt('Copie o link público:', url));
 }
 
 function renderActivity(forms, responses, users) {
@@ -1079,6 +1091,7 @@ async function loadFormsPanel() {
       <div class="form-row-actions">
         <button class="btn-action" onclick="viewForm('${f.id}')">&#128065; Visualizar</button>
         <button class="btn-action" onclick="copyFormLink('${f.id}',this)" title="Copiar link do formulário">&#128279; Copiar Link</button>
+        <button class="btn-action" onclick="copyPublicLink('${f.id}',this)" title="Link público sem login">&#127757; Link Público</button>
         <button class="btn-action primary" onclick="editForm('${f.id}')">&#9998; Editar</button>
         <div class="dropdown" style="position:relative">
           <button class="btn-dots" onclick="toggleCtxMenu(this)">&#8942;</button>
@@ -1588,7 +1601,7 @@ function renderResponsesTable() {
   html += `<div class="table-card"><div class="table-wrap"><table>
     <thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead>
     <tbody>${filtered.map(r=>`<tr>
-      <td><strong>${esc(r.user_name)}</strong></td>
+      <td><strong>${esc(r.user_name)}</strong>${r.is_guest ? ' <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:5px;font-weight:700">Externo</span>' : ''}</td>
       <td>${esc(r.user_email)}</td>
       <td style="white-space:nowrap">${new Date(r.submitted_at).toLocaleString('pt-BR')}</td>
       ${fields.map(f=>{

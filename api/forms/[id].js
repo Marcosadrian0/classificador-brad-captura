@@ -18,6 +18,15 @@ module.exports = async (req, res) => {
   const { id } = req.query;
   try {
     if (req.method === 'GET') {
+      // Public mode: no auth required
+      if (req.query.public === '1') {
+        const { list: forms } = await read('forms');
+        const form = forms.find(f => f.id === id);
+        if (!form || form.is_active === false) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
+        const { assigned_user_ids, triggers, created_by, ...pub } = form;
+        return res.json({ success: true, form: pub });
+      }
+
       const user = verifyToken(req);
       const { list: forms } = await read('forms');
       const form = forms.find(f => f.id === id);
@@ -38,7 +47,37 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      // Submit form response
+      const { values = {}, guest_name, guest_email } = req.body || {};
+
+      // Public submission: no token, but must supply name + @sbk.com.br email
+      const isPublic = !req.headers.authorization;
+      if (isPublic) {
+        if (!guest_name || !guest_email) return res.status(400).json({ success: false, error: 'Nome e e-mail são obrigatórios' });
+        const email = guest_email.trim().toLowerCase();
+        if (!email.endsWith('@sbk.com.br')) return res.status(400).json({ success: false, error: 'Use seu e-mail corporativo (@sbk.com.br)' });
+
+        const { list: forms } = await read('forms');
+        const form = forms.find(f => f.id === id);
+        if (!form || form.is_active === false) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
+
+        const normalized = {};
+        for (const [k, v] of Object.entries(values)) {
+          normalized[k] = Array.isArray(v) ? v.join('||') : String(v ?? '');
+        }
+
+        const respFile = await read('responses');
+        // One response per email per form
+        const filtered = respFile.list.filter(r => !(r.form_id === id && r.guest_email === email));
+        const response = {
+          id: randomUUID(), form_id: id, user_id: null,
+          guest_name: guest_name.trim(), guest_email: email,
+          submitted_at: new Date().toISOString(), values: normalized
+        };
+        await write('responses', [...filtered, response], respFile.sha, `public-response: ${email} -> "${form.title}"`);
+        return res.json({ success: true, response });
+      }
+
+      // Authenticated submission
       const user = verifyToken(req);
       const { list: forms, sha: formsSha } = await read('forms');
       const form = forms.find(f => f.id === id);
@@ -48,7 +87,6 @@ module.exports = async (req, res) => {
         return res.status(403).json({ success: false, error: 'Sem acesso a este formulário' });
       }
 
-      const { values = {} } = req.body || {};
       const normalized = {};
       for (const [k, v] of Object.entries(values)) {
         normalized[k] = Array.isArray(v) ? v.join('||') : String(v ?? '');

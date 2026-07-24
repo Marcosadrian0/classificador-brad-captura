@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário — SBK Forms</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f4f6f9; color: #1a2332; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 60px; }
+.card { background: #fff; border-radius: 18px; border: 1.5px solid #e8eaed; padding: 36px 40px; width: 100%; max-width: 600px; box-shadow: 0 4px 24px rgba(2,54,49,.06); }
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.logo-icon { display: flex; gap: 3px; }
+.lc { width: 8px; border-radius: 2px; }
+.lc1 { height: 18px; background: #4ade80; }
+.lc2 { height: 13px; background: #023631; margin-top: 5px; }
+.lc3 { height: 22px; background: #9ca3af; }
+.logo-text { font-size: 15px; font-weight: 700; color: #023631; }
+.form-title { font-size: 22px; font-weight: 700; color: #1a2332; margin-bottom: 6px; }
+.form-desc { font-size: 13px; color: #4A545E; font-weight: 300; line-height: 1.6; margin-bottom: 28px; }
+.divider { border: none; border-top: 1.5px solid #e8eaed; margin: 24px 0; }
+.identity-box { background: #f4f6f9; border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+.identity-label { font-size: 11px; font-weight: 700; color: #023631; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+.form-group { margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+label { font-size: 12px; font-weight: 600; color: #1a2332; display: block; margin-bottom: 5px; }
+.req { color: #dc2626; margin-left: 2px; }
+input[type=text], input[type=email], textarea, select {
+  width: 100%; padding: 10px 13px; border: 1.5px solid #e8eaed; border-radius: 10px;
+  font-size: 13px; font-family: inherit; color: #1a2332; background: #fff;
+  transition: border-color .15s; outline: none;
+}
+input:focus, textarea:focus, select:focus { border-color: #023631; }
+.email-row { display: flex; align-items: center; gap: 0; }
+.email-row input { border-radius: 10px 0 0 10px; border-right: none; flex: 1; }
+.email-suffix { background: #f4f6f9; border: 1.5px solid #e8eaed; border-left: none; border-radius: 0 10px 10px 0; padding: 10px 13px; font-size: 13px; color: #4A545E; white-space: nowrap; font-weight: 600; }
+textarea { resize: vertical; min-height: 90px; }
+.field-block { margin-bottom: 22px; }
+.field-label { font-size: 13px; font-weight: 600; color: #1a2332; margin-bottom: 8px; }
+.field-desc { font-size: 11px; color: #9ca3af; margin-bottom: 8px; }
+.radio-group, .check-group { display: flex; flex-direction: column; gap: 8px; }
+.radio-opt, .check-opt { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.radio-opt input, .check-opt input { margin-top: 2px; accent-color: #023631; flex-shrink: 0; }
+.opt-label { font-size: 13px; color: #1a2332; }
+.acesso-box { border: 1.5px solid #e8eaed; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.acesso-row { display: flex; align-items: center; gap: 12px; }
+.acesso-toggle { display: flex; gap: 0; border: 1.5px solid #e8eaed; border-radius: 8px; overflow: hidden; }
+.acesso-toggle label { margin: 0; }
+.acesso-toggle input { display: none; }
+.acesso-toggle span { display: block; padding: 6px 16px; font-size: 12px; font-weight: 600; color: #4A545E; cursor: pointer; transition: all .15s; }
+.acesso-toggle input:checked + span { background: #023631; color: #fff; }
+.acesso-label { font-size: 13px; color: #1a2332; font-weight: 600; }
+.acesso-obs { margin-top: 6px; }
+.btn-submit { width: 100%; padding: 13px; background: #023631; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .15s; margin-top: 8px; }
+.btn-submit:hover { background: #034a43; }
+.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+.alert { padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
+.alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.success-screen { text-align: center; padding: 40px 0 20px; }
+.success-icon { font-size: 48px; margin-bottom: 16px; }
+.success-title { font-size: 20px; font-weight: 700; color: #1a2332; margin-bottom: 8px; }
+.success-sub { font-size: 13px; color: #4A545E; line-height: 1.6; }
+.loading { text-align: center; padding: 60px 0; color: #9ca3af; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="app">
+  <div class="logo">
+    <div class="logo-icon"><div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div></div>
+    <span class="logo-text">SBK Forms</span>
+  </div>
+  <div class="loading">Carregando...</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const formId = params.get('id');
+
+if (!formId) {
+  document.getElementById('app').innerHTML = '<div class="alert alert-error">Link inválido. Verifique o endereço e tente novamente.</div>';
+}
+
+let formData = null;
+
+async function init() {
+  const res = await fetch(`/api/forms/${formId}?public=1`);
+  const data = await res.json();
+  if (!data.success) {
+    document.getElementById('app').innerHTML = '<div class="alert alert-error">Formulário não encontrado ou indisponível.</div>';
+    return;
+  }
+  formData = data.form;
+  document.title = formData.title + ' — SBK Forms';
+  render();
+}
+
+function render() {
+  const fields = (formData.fields || []).sort((a, b) => a.order_index - b.order_index);
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+    <div class="logo">
+      <div class="logo-icon"><div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div></div>
+      <span class="logo-text">SBK Forms</span>
+    </div>
+    <div class="form-title">${esc(formData.title)}</div>
+    ${formData.description ? `<div class="form-desc">${esc(formData.description)}</div>` : ''}
+    <hr class="divider">
+    <div id="main-alert" style="display:none" class="alert alert-error"></div>
+    <div class="identity-box">
+      <div class="identity-label">Sua identificação</div>
+      <div class="form-group">
+        <label>Nome completo <span class="req">*</span></label>
+        <input type="text" id="guest-name" placeholder="Ex: João Silva" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label>E-mail corporativo <span class="req">*</span></label>
+        <div class="email-row">
+          <input type="text" id="guest-email-local" placeholder="seu.nome" autocomplete="off" oninput="formatEmailLocal(this)" style="text-transform:lowercase">
+          <span class="email-suffix">@sbk.com.br</span>
+        </div>
+      </div>
+    </div>
+    <form id="pform" onsubmit="submitForm(event)">
+      ${fields.map(f => renderField(f)).join('')}
+      <button type="submit" class="btn-submit" id="submit-btn">Enviar respostas</button>
+    </form>
+  `;
+}
+
+function formatEmailLocal(el) {
+  el.value = el.value.toLowerCase().replace(/[^a-z0-9._-]/g, '');
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderField(f) {
+  const req = f.required ? '<span class="req">*</span>' : '';
+  const desc = f.description ? `<div class="field-desc">${esc(f.description)}</div>` : '';
+
+  if (f.field_type === 'text') {
+    return `<div class="field-block">
+      <div class="field-label">${esc(f.label)} ${req}</div>${desc}
+      <input type="text" name="${f.id}" ${f.required?'required':''}>
+    </div>`;
+  }
+  if (f.field_type === 'textarea') {
+    return `<div class="field-block">
+      <div class="field-label">${esc(f.label)} ${req}</div>${desc}
+      <textarea name="${f.id}" ${f.required?'required':''}></textarea>
+    </div>`;
+  }
+  if (f.field_type === 'select') {
+    const opts = (f.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+    return `<div class="field-block">
+      <div class="field-label">${esc(f.label)} ${req}</div>${desc}
+      <select name="${f.id}" ${f.required?'required':''}><option value="">Selecione...</option>${opts}</select>
+    </div>`;
+  }
+  if (f.field_type === 'radio') {
+    const opts = (f.options||[]).map(o=>`
+      <label class="radio-opt">
+        <input type="radio" name="${f.id}" value="${esc(o)}" ${f.required?'required':''}>
+        <span class="opt-label">${esc(o)}</span>
+      </label>`).join('');
+    return `<div class="field-block"><div class="field-label">${esc(f.label)} ${req}</div>${desc}<div class="radio-group">${opts}</div></div>`;
+  }
+  if (f.field_type === 'checkbox') {
+    const opts = (f.options||[]).map(o=>`
+      <label class="check-opt">
+        <input type="checkbox" name="${f.id}" value="${esc(o)}">
+        <span class="opt-label">${esc(o)}</span>
+      </label>`).join('');
+    return `<div class="field-block"><div class="field-label">${esc(f.label)} ${req}</div>${desc}<div class="check-group">${opts}</div></div>`;
+  }
+  if (f.field_type === 'acesso') {
+    return `<div class="field-block">
+      <div class="field-label">${esc(f.label)} ${req}</div>${desc}
+      <div class="acesso-box">
+        <div class="acesso-row">
+          <div class="acesso-toggle">
+            <label><input type="radio" name="acesso_${f.id}" value="SIM" onchange="acessoChange('${f.id}','SIM')" ${f.required?'required':''}><span>SIM</span></label>
+            <label><input type="radio" name="acesso_${f.id}" value="NAO" onchange="acessoChange('${f.id}','NAO')"><span>NAO</span></label>
+          </div>
+          <span class="acesso-label">Tem acesso?</span>
+        </div>
+        <div class="acesso-obs" id="acesso-obs-${f.id}" style="display:none">
+          <label style="font-size:12px;color:#4A545E;margin-bottom:4px;display:block">Funciona corretamente?</label>
+          <div class="acesso-toggle" style="margin-bottom:8px">
+            <label><input type="radio" name="acesso_func_${f.id}" value="SIM"><span>SIM</span></label>
+            <label><input type="radio" name="acesso_func_${f.id}" value="NAO"><span>NAO</span></label>
+          </div>
+          <input type="text" name="acesso_text_${f.id}" placeholder="Observação (opcional)">
+        </div>
+        <input type="hidden" name="${f.id}" id="acesso-val-${f.id}">
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function acessoChange(fid, val) {
+  document.getElementById(`acesso-obs-${fid}`).style.display = val === 'SIM' ? '' : 'none';
+  buildAcessoValue(fid);
+}
+
+function buildAcessoValue(fid) {
+  const main = document.querySelector(`input[name="acesso_${fid}"]:checked`)?.value || '';
+  const func = document.querySelector(`input[name="acesso_func_${fid}"]:checked`)?.value || '';
+  const text = document.querySelector(`input[name="acesso_text_${fid}"]`)?.value || '';
+  const hidden = document.getElementById(`acesso-val-${fid}`);
+  if (hidden) hidden.value = main === 'SIM' ? `SIM||${func}||${text}` : `NAO||${text}`;
+}
+
+async function submitForm(e) {
+  e.preventDefault();
+  const alert = document.getElementById('main-alert');
+  alert.style.display = 'none';
+
+  const name = document.getElementById('guest-name').value.trim();
+  const emailLocal = document.getElementById('guest-email-local').value.trim().toLowerCase();
+  if (!name) { alert.textContent = 'Informe seu nome completo.'; alert.style.display = 'block'; return; }
+  if (!emailLocal) { alert.textContent = 'Informe seu e-mail corporativo.'; alert.style.display = 'block'; return; }
+  const email = emailLocal + '@sbk.com.br';
+
+  // Build values from form fields
+  const fields = (formData.fields || []).sort((a, b) => a.order_index - b.order_index);
+  const values = {};
+  const form = document.getElementById('pform');
+
+  for (const f of fields) {
+    if (f.field_type === 'acesso') {
+      buildAcessoValue(f.id);
+      const v = document.getElementById(`acesso-val-${f.id}`)?.value || '';
+      if (f.required && !v.split('||')[0]) {
+        alert.textContent = `Campo obrigatório: "${f.label}"`;
+        alert.style.display = 'block'; return;
+      }
+      values[f.id] = v;
+    } else if (f.field_type === 'checkbox') {
+      const checked = [...form.querySelectorAll(`input[name="${f.id}"]:checked`)].map(i=>i.value);
+      values[f.id] = checked.join('||');
+    } else {
+      const el = form.elements[f.id];
+      if (el) values[f.id] = el.value || '';
+    }
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+
+  const res = await fetch(`/api/forms/${formId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ guest_name: name, guest_email: email, values })
+  });
+  const data = await res.json();
+
+  if (!data.success) {
+    alert.textContent = data.error || 'Erro ao enviar.';
+    alert.style.display = 'block';
+    btn.textContent = 'Enviar respostas'; btn.disabled = false;
+    return;
+  }
+
+  document.getElementById('app').innerHTML = `
+    <div class="logo">
+      <div class="logo-icon"><div class="lc lc1"></div><div class="lc lc2"></div><div class="lc lc3"></div></div>
+      <span class="logo-text">SBK Forms</span>
+    </div>
+    <div class="success-screen">
+      <div class="success-icon">&#10003;</div>
+      <div class="success-title">Respostas enviadas!</div>
+      <div class="success-sub">Obrigado, <strong>${esc(name)}</strong>.<br>Suas respostas foram registradas com sucesso.</div>
+    </div>
+  `;
+}
+
+if (formId) init();
+</script>
+</body>
+</html>

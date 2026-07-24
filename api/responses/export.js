@@ -20,8 +20,8 @@ module.exports = async (req, res) => {
     const rows = responses
       .filter(r => r.form_id === formId)
       .map(r => {
-        const u = users.find(u => u.id === r.user_id) || {};
-        return { user_name: u.name, user_email: u.email, submitted_at: r.submitted_at, values: r.values || {} };
+        const u = r.user_id ? (users.find(u => u.id === r.user_id) || {}) : {};
+        return { user_name: r.guest_name || u.name, user_email: r.guest_email || u.email, submitted_at: r.submitted_at, values: r.values || {} };
       })
       .sort((a, b) => (a.user_name || '').localeCompare(b.user_name || ''));
 
