@@ -288,5 +288,28 @@
       "46de7f82-e1a7-4f77-8910-13bc6a2a9cb5"
     ],
     "triggers": []
+  },
+  {
+    "id": "ce02511f-d925-45c9-8a24-c88181aa01eb",
+    "title": "ACADEMY SBK",
+    "description": "Verifique se você recebeu o convite de acesso ao Academy SBK, tanto no e-mail corporativo quanto no e-mail pessoal. Caso não tenha localizado o convite, verifique também a caixa de spam/lixo eletrônico. As respostas deste formulário serão utilizadas para identificar os colaboradores que ainda não receberam o acesso e solicitar um novo envio.",
+    "is_active": true,
+    "created_by": "aa9a4c63-3bb9-48fd-a1d8-3ff45fa463a3",
+    "created_at": "2026-07-24T14:12:44.979Z",
+    "fields": [
+      {
+        "id": "44cb69ee-3165-40f8-a49d-1c08784db808",
+        "label": "RECEBEU O ACESSO DO ACADEMY SBK?",
+        "field_type": "radio",
+        "options": [
+          "SIM",
+          "NÃO"
+        ],
+        "required": false,
+        "order_index": 0
+      }
+    ],
+    "assigned_user_ids": [],
+    "triggers": []
   }
 ]
