@@ -678,5 +678,16 @@
     "values": {
       "44cb69ee-3165-40f8-a49d-1c08784db808": "SIM"
     }
+  },
+  {
+    "id": "e9a91187-c4d4-4773-992f-92600c747bdd",
+    "form_id": "ce02511f-d925-45c9-8a24-c88181aa01eb",
+    "user_id": null,
+    "guest_name": "SOLANGE SOUZA OLIVEIRA",
+    "guest_email": "solange.souza@sbk.com.br",
+    "submitted_at": "2026-07-24T14:45:38.650Z",
+    "values": {
+      "44cb69ee-3165-40f8-a49d-1c08784db808": "NÃO"
+    }
   }
 ]
