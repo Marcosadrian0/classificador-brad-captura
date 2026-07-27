@@ -810,5 +810,16 @@
     "values": {
       "44cb69ee-3165-40f8-a49d-1c08784db808": "SIM"
     }
+  },
+  {
+    "id": "84bb0386-c177-4e18-a981-6348f3015d3f",
+    "form_id": "ce02511f-d925-45c9-8a24-c88181aa01eb",
+    "user_id": null,
+    "guest_name": "Valentina Virginio de Oliveira",
+    "guest_email": "valentina.oliveiraskb.com.br@sbk.com.br",
+    "submitted_at": "2026-07-27T12:41:05.973Z",
+    "values": {
+      "44cb69ee-3165-40f8-a49d-1c08784db808": "NÃO"
+    }
   }
 ]
