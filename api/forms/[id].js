@@ -56,23 +56,19 @@ module.exports = async (req, res) => {
         const email = guest_email.trim().toLowerCase();
         if (!email.endsWith('@sbk.com.br')) return res.status(400).json({ success: false, error: 'Use seu e-mail corporativo (@sbk.com.br)' });
 
-        // Parallel reads to cut latency
-        const [{ list: forms }, respFile] = await Promise.all([read('forms'), read('responses')]);
-        const form = forms.find(f => f.id === id);
-        if (!form || form.is_active === false) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
-
+        // Only read responses — form already validated on page load, skip forms read to save one API call
         const normalized = {};
         for (const [k, v] of Object.entries(values)) {
           normalized[k] = Array.isArray(v) ? v.join('||') : String(v ?? '');
         }
-        // One response per email per form
+        const respFile = await read('responses');
         const filtered = respFile.list.filter(r => !(r.form_id === id && r.guest_email === email));
         const response = {
           id: randomUUID(), form_id: id, user_id: null,
           guest_name: guest_name.trim(), guest_email: email,
           submitted_at: new Date().toISOString(), values: normalized
         };
-        await write('responses', [...filtered, response], respFile.sha, `public-response: ${email} -> "${form.title}"`);
+        await write('responses', [...filtered, response], respFile.sha, `public-response: ${email}`);
         return res.json({ success: true, response });
       }
 
