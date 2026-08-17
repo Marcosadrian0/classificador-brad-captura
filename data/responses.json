@@ -876,5 +876,16 @@
     "values": {
       "0dbe112e-6c47-46f5-8711-a9bebdc9b34b": "SIM"
     }
+  },
+  {
+    "id": "28356b31-0f9b-4332-87ae-ab2ad25723a1",
+    "form_id": "e44f398c-4beb-4664-ace9-9afa8634ff5c",
+    "user_id": null,
+    "guest_name": "Ana Cláudia Vieira Silva",
+    "guest_email": "ana.vieira@sbk.com.br",
+    "submitted_at": "2026-08-17T16:55:53.249Z",
+    "values": {
+      "0dbe112e-6c47-46f5-8711-a9bebdc9b34b": "NÃO"
+    }
   }
 ]
