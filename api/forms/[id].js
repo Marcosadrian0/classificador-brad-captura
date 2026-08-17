@@ -56,7 +56,8 @@ module.exports = async (req, res) => {
         const email = guest_email.trim().toLowerCase();
         if (!email.endsWith('@sbk.com.br')) return res.status(400).json({ success: false, error: 'Use seu e-mail corporativo (@sbk.com.br)' });
 
-        const { list: forms } = await read('forms');
+        // Parallel reads to cut latency
+        const [{ list: forms }, respFile] = await Promise.all([read('forms'), read('responses')]);
         const form = forms.find(f => f.id === id);
         if (!form || form.is_active === false) return res.status(404).json({ success: false, error: 'Formulário não encontrado' });
 
@@ -64,8 +65,6 @@ module.exports = async (req, res) => {
         for (const [k, v] of Object.entries(values)) {
           normalized[k] = Array.isArray(v) ? v.join('||') : String(v ?? '');
         }
-
-        const respFile = await read('responses');
         // One response per email per form
         const filtered = respFile.list.filter(r => !(r.form_id === id && r.guest_email === email));
         const response = {

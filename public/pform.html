@@ -249,26 +249,38 @@ async function submitForm(e) {
   }
 
   const btn = document.getElementById('submit-btn');
-  btn.textContent = 'Enviando...'; btn.disabled = true;
 
-  let data;
-  try {
-    const res = await fetch(`/api/forms/${formId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guest_name: name, guest_email: email, values })
-    });
-    // Vercel may return HTML on cold-start failures; guard the json() call
-    const ct = res.headers.get('content-type') || '';
-    data = ct.includes('application/json') ? await res.json() : { success: false, error: 'server_error' };
-  } catch {
-    data = { success: false, error: 'network_error' };
+  async function trySubmit(attempt) {
+    btn.textContent = attempt > 1 ? `Enviando... (tentativa ${attempt}/3)` : 'Enviando...';
+    btn.disabled = true;
+    let data;
+    try {
+      const res = await fetch(`/api/forms/${formId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guest_name: name, guest_email: email, values })
+      });
+      const ct = res.headers.get('content-type') || '';
+      data = ct.includes('application/json') ? await res.json() : { success: false, error: 'server_error' };
+    } catch {
+      data = { success: false, error: 'network_error' };
+    }
+    // Auto-retry on transient server errors
+    const isTransient = !data.success && (!data.error || data.error === 'server_error' || data.error === 'network_error' || data.error.toLowerCase().includes('server') || data.error.toLowerCase().includes('erro'));
+    if (!data.success && isTransient && attempt < 3) {
+      btn.textContent = `Aguarde, tentando novamente...`;
+      await new Promise(r => setTimeout(r, 2000));
+      return trySubmit(attempt + 1);
+    }
+    return data;
   }
+
+  const data = await trySubmit(1);
 
   if (!data.success) {
     const isServerErr = !data.error || data.error === 'server_error' || data.error === 'network_error' || data.error.toLowerCase().includes('server');
     alert.innerHTML = isServerErr
-      ? 'Servidor temporariamente indisponível. <strong>Tente novamente em instantes.</strong>'
+      ? 'Servidor indisponível. Clique em <strong>Tentar novamente</strong> para reenviar.'
       : data.error;
     alert.style.display = 'block';
     btn.textContent = 'Tentar novamente'; btn.disabled = false;
