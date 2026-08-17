@@ -865,5 +865,16 @@
     "values": {
       "0dbe112e-6c47-46f5-8711-a9bebdc9b34b": "NÃO"
     }
+  },
+  {
+    "id": "860f929e-3f05-4788-998b-122f5c4bb3b5",
+    "form_id": "e44f398c-4beb-4664-ace9-9afa8634ff5c",
+    "user_id": null,
+    "guest_name": "Carolayne Nascimento Silva",
+    "guest_email": "carolayne.silva@sbk.com.br",
+    "submitted_at": "2026-08-17T16:55:02.474Z",
+    "values": {
+      "0dbe112e-6c47-46f5-8711-a9bebdc9b34b": "SIM"
+    }
   }
 ]
