@@ -21,8 +21,8 @@
         <div style="font-size:10px;font-weight:300;color:#4A545E">Legal Operations</div>
       </div>
     </div>
-    <div class="login-title">Acessar sistema</div>
-    <div class="login-sub">Formulários internos — SBK</div>
+    <div id="login-title" class="login-title">Acessar sistema</div>
+    <div id="login-sub" class="login-sub">Formulários internos — SBK</div>
 
     <div id="alert" style="display:none" class="alert alert-error"></div>
 
@@ -40,22 +40,40 @@
       </button>
     </form>
 
+    <form id="change-form" style="display:none" onsubmit="changePassword(event)">
+      <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#7c5b00">
+        Sua senha e a padrao. Defina uma nova senha para continuar.
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new_password">Nova senha</label>
+        <input class="form-input" type="password" id="new_password" placeholder="Minimo 4 caracteres" required minlength="4" autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Confirmar senha</label>
+        <input class="form-input" type="password" id="confirm_password" placeholder="Repita a nova senha" required minlength="4">
+      </div>
+      <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center;margin-top:8px" id="change-btn">
+        Salvar nova senha
+      </button>
+    </form>
+
     <div class="login-foot">Acesso restrito a colaboradores SBK</div>
   </div>
 </div>
 <script>
-  // Redirect if already logged in
   const token = localStorage.getItem('sbk_token');
   const user = token ? JSON.parse(localStorage.getItem('sbk_user') || 'null') : null;
   if (token && user) {
     window.location.href = user.role === 'admin' ? '/admin' : '/dashboard';
   }
 
+  let _pendingToken = null;
+
   async function login(e) {
     e.preventDefault();
     const btn = document.getElementById('btn');
-    const alert = document.getElementById('alert');
-    alert.style.display = 'none';
+    const alertEl = document.getElementById('alert');
+    alertEl.style.display = 'none';
     btn.textContent = 'Entrando...';
     btn.disabled = true;
 
@@ -71,15 +89,64 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
 
+      if (data.must_change_password) {
+        _pendingToken = data.token;
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('change-form').style.display = 'block';
+        document.getElementById('login-title').textContent = 'Redefinir senha';
+        document.getElementById('login-sub').textContent = 'Crie uma senha pessoal para acessar o sistema';
+        return;
+      }
+
       localStorage.setItem('sbk_token', data.token);
       localStorage.setItem('sbk_user', JSON.stringify(data.user));
       const next = sessionStorage.getItem('sbk_redirect');
       sessionStorage.removeItem('sbk_redirect');
       window.location.href = next || (data.user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
-      alert.textContent = err.message;
-      alert.style.display = 'block';
+      alertEl.textContent = err.message;
+      alertEl.style.display = 'block';
       btn.textContent = 'Entrar';
+      btn.disabled = false;
+    }
+  }
+
+  async function changePassword(e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('alert');
+    const btn = document.getElementById('change-btn');
+    alertEl.style.display = 'none';
+    const np = document.getElementById('new_password').value;
+    const cp = document.getElementById('confirm_password').value;
+    if (np !== cp) {
+      alertEl.textContent = 'As senhas não coincidem';
+      alertEl.style.display = 'block';
+      return;
+    }
+    btn.textContent = 'Salvando...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _pendingToken },
+        body: JSON.stringify({ new_password: np })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      const lr = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('email').value, password: np })
+      });
+      const ld = await lr.json();
+      if (!ld.success) throw new Error(ld.error);
+      localStorage.setItem('sbk_token', ld.token);
+      localStorage.setItem('sbk_user', JSON.stringify(ld.user));
+      window.location.href = ld.user.role === 'admin' ? '/admin' : '/dashboard';
+    } catch (err) {
+      alertEl.textContent = err.message;
+      alertEl.style.display = 'block';
+      btn.textContent = 'Salvar nova senha';
       btn.disabled = false;
     }
   }

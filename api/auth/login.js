@@ -11,17 +11,18 @@ module.exports = async (req, res) => {
     const { list: users } = await read('users');
     const login = email.toLowerCase().trim();
     const user = users.find(u => u.username === login || u.email === login);
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    if (!user || user.is_active === false || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ success: false, error: 'Credenciais inválidas' });
     }
 
+    const mustChange = !!user.must_change_password;
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role },
+      { id: user.id, email: user.email, name: user.name, role: user.role, must_change_password: mustChange },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
-    res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+    res.json({ success: true, token, must_change_password: mustChange, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }
