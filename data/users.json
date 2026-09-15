@@ -499,5 +499,15 @@
     "is_active": true,
     "created_at": "2026-07-20T20:11:38.895Z",
     "client": "Bradesco"
+  },
+  {
+    "id": "3e7036ab-995b-4272-a9ba-72604d1a805b",
+    "name": "Rafael Dell Pezzo",
+    "username": "rafael.pezzo",
+    "email": "rafael.pezzo",
+    "password_hash": "$2a$10$kYKzr8iWHK4RbWW.O1CD2.Fm.T1Ih2v6J140g6hIFIU4fZvvGqIFm",
+    "role": "admin",
+    "is_active": true,
+    "created_at": "2026-09-15T01:04:47.308Z"
   }
 ]
