@@ -126,7 +126,7 @@
     btn.textContent = 'Salvando...';
     btn.disabled = true;
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await fetch('/api/auth/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _pendingToken },
         body: JSON.stringify({ new_password: np })
